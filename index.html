@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learn Claude Code — Skills Journey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0d1b2a; --navy-mid: #1a2e44; --navy-light: #243b55;
+      --gold: #c9a84c; --gold-light: #e8c96a; --gold-pale: #fdf6e3;
+      --green: #2ecc71; --green-dark: #27ae60; --red: #e74c3c;
+      --white: #ffffff; --gray-100: #f4f6f9; --gray-200: #e8ecf1;
+      --gray-400: #9aa3b0; --gray-600: #5a6577; --text: #1a2236;
+      --radius: 12px; --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(13,27,42,0.10);
+      --shadow-lg: 0 8px 40px rgba(13,27,42,0.16);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--gray-100); color: var(--text); line-height: 1.6; min-height: 100vh; }
+
+    /* NAV */
+    .top-nav { position: sticky; top: 0; z-index: 100; background: var(--navy); border-bottom: 2px solid var(--gold); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { font-size: 1rem; font-weight: 800; color: var(--white); }
+    .nav-brand span { color: var(--gold); }
+    .nav-meta { font-size: 0.8rem; color: var(--gray-400); }
+
+    /* ROADMAP HERO */
+    .road-hero { background: var(--navy); padding: 48px 24px 56px; text-align: center; }
+    .road-hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; color: var(--white); margin-bottom: 10px; }
+    .road-hero h1 em { font-style: normal; color: var(--gold); }
+    .road-hero p { font-size: 1rem; color: var(--gray-400); max-width: 480px; margin: 0 auto; }
+
+    /* PATH */
+    .path-wrapper { max-width: 720px; margin: 0 auto; padding: 52px 24px 80px; position: relative; }
+    .path-spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; transform: translateX(-50%); background: repeating-linear-gradient(to bottom, rgba(201,168,76,0.4) 0, rgba(201,168,76,0.4) 10px, transparent 10px, transparent 20px); z-index: 0; pointer-events: none; }
+    .skill-row { display: flex; margin-bottom: 52px; position: relative; z-index: 1; }
+    .skill-row:nth-child(odd) { justify-content: flex-start; }
+    .skill-row:nth-child(even) { justify-content: flex-end; }
+
+    /* SKILL CARD */
+    .skill-card { width: 300px; background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 2px solid transparent; transition: transform 0.2s, box-shadow 0.2s; }
+    .skill-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .skill-card.s-complete { border-color: var(--green); }
+    .skill-card.s-active { border-color: var(--gold); animation: pulse-gold 2.5s ease infinite; }
+    @keyframes pulse-gold { 0%,100% { box-shadow: var(--shadow); } 50% { box-shadow: 0 0 0 6px rgba(201,168,76,0.15), var(--shadow); } }
+
+    .skill-top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 10px; }
+    .skill-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+    .bg-gold { background: rgba(201,168,76,0.15); }
+    .bg-blue { background: rgba(52,152,219,0.12); }
+    .bg-gray { background: var(--gray-200); }
+
+    .skill-meta { flex: 1; }
+    .skill-title { font-size: 0.95rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; line-height: 1.3; }
+    .skill-badge { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; }
+    .badge-gold { background: rgba(201,168,76,0.18); color: #8a6f24; }
+    .badge-blue { background: rgba(52,152,219,0.14); color: #2176ae; }
+    .badge-gray { background: var(--gray-200); color: var(--gray-600); }
+
+    .skill-tagline { font-size: 0.8rem; color: var(--gray-600); margin: 10px 0 12px; line-height: 1.5; }
+
+    .lesson-dots { display: flex; gap: 6px; margin-bottom: 14px; }
+    .ldot { width: 10px; height: 10px; border-radius: 50%; background: var(--gray-200); transition: background 0.3s; }
+    .ldot.done { background: var(--green); }
+    .ldot.partial { background: var(--gold); }
+
+    .skill-btn { width: 100%; padding: 10px; border: none; border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+    .btn-start { background: var(--gold); color: var(--navy); }
+    .btn-start:hover { background: var(--gold-light); }
+    .btn-continue { background: var(--navy); color: var(--white); }
+    .btn-continue:hover { background: var(--navy-light); }
+    .btn-review { background: var(--green); color: var(--white); }
+    .btn-review:hover { background: var(--green-dark); }
+
+    /* LESSON VIEW */
+    #lesson-view { display: none; min-height: 100vh; flex-direction: column; }
+    #lesson-view.open { display: flex; }
+
+    .lesson-hdr { background: var(--navy); border-bottom: 2px solid var(--gold); padding: 0 20px; height: 60px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+    .back-btn { background: none; border: none; color: var(--gold); font-weight: 700; font-size: 0.95rem; cursor: pointer; font-family: 'Inter', sans-serif; padding: 6px 0; transition: opacity 0.2s; white-space: nowrap; }
+    .back-btn:hover { opacity: 0.7; }
+    .lesson-hdr-titles { flex: 1; overflow: hidden; }
+    .lesson-skill-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gold); }
+    .lesson-title-lbl { font-size: 0.9rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pg-dots { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+    .pgdot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: background 0.25s, transform 0.25s; }
+    .pgdot.cur { background: var(--gold); transform: scale(1.35); }
+    .pgdot.done { background: rgba(255,255,255,0.55); }
+
+    /* Lesson picker bar */
+    .lesson-picker-bar { background: var(--navy-mid); border-bottom: 1px solid var(--navy-light); padding: 8px 20px; display: flex; gap: 8px; flex-shrink: 0; }
+    .lpick-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: rgba(255,255,255,0.5); font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .lpick-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .lpick-btn.active { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+    .lpick-btn.ldone { border-color: var(--green); color: var(--green); }
+    .lpick-btn.active.ldone { background: var(--green); border-color: var(--green); color: var(--white); }
+
+    .lesson-body { flex: 1; overflow-y: auto; padding: 32px 20px; display: flex; justify-content: center; }
+    .lesson-inner { max-width: 620px; width: 100%; }
+
+    .lesson-foot { background: var(--white); border-top: 1px solid var(--gray-200); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-shrink: 0; }
+    .foot-meta { font-size: 0.8rem; color: var(--gray-400); }
+    .foot-btns { display: flex; gap: 10px; }
+    .btn-prev { padding: 9px 20px; background: var(--gray-200); color: var(--gray-600); border: none; border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+    .btn-prev:hover:not(:disabled) { background: var(--gray-400); color: var(--white); }
+    .btn-prev:disabled { opacity: 0.35; cursor: default; }
+    .btn-next { padding: 9px 22px; background: var(--gold); color: var(--navy); border: none; border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+    .btn-next:hover { background: var(--gold-light); }
+    .btn-next.finish { background: var(--green); color: var(--white); }
+    .btn-next.finish:hover { background: var(--green-dark); }
+    .btn-next:disabled { opacity: 0.4; cursor: default; }
+
+    /* PAGE CONTENT */
+    @keyframes fadeUp { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
+    .animate-in { animation: fadeUp 0.3s ease forwards; }
+
+    .pg-heading { font-size: clamp(1.35rem, 3vw, 1.9rem); font-weight: 800; color: var(--navy); margin-bottom: 14px; line-height: 1.25; }
+    .pg-heading .mono { font-family: 'Fira Code', monospace; color: var(--gold); }
+    .pg-body { font-size: 0.97rem; color: var(--gray-600); line-height: 1.75; margin-bottom: 14px; }
+    .pg-body strong { color: var(--text); }
+    .pg-body code { font-family: 'Fira Code', monospace; background: var(--gray-200); padding: 1px 5px; border-radius: 3px; font-size: 0.88em; color: var(--navy); }
+
+    .tip-box { background: var(--gold-pale); border-left: 4px solid var(--gold); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 14px 16px; margin: 18px 0; }
+    .tip-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gold); margin-bottom: 4px; }
+    .tip-body { font-size: 0.88rem; color: var(--text); line-height: 1.6; }
+    .tip-body code { font-family: 'Fira Code', monospace; background: rgba(201,168,76,0.2); padding: 1px 5px; border-radius: 3px; }
+
+    .key-point { background: var(--navy); color: var(--white); border-radius: var(--radius); padding: 18px 22px; margin: 18px 0; }
+    .kp-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 6px; }
+    .kp-body { font-size: 1rem; font-weight: 600; line-height: 1.5; }
+
+    /* BREAKDOWN LIST */
+    .bdlist { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+    .bditem { display: flex; gap: 14px; align-items: flex-start; }
+    .bdcmd { font-family: 'Fira Code', monospace; background: var(--navy); color: var(--gold-light); padding: 3px 10px; border-radius: var(--radius-sm); font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+    .bddesc { font-size: 0.88rem; color: var(--gray-600); line-height: 1.55; }
+    .bddesc strong { color: var(--text); }
+
+    /* STEPS */
+    .steps { display: flex; flex-direction: column; gap: 14px; margin: 16px 0; }
+    .step { display: flex; gap: 14px; align-items: flex-start; }
+    .step-n { width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: var(--gold); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+    .step-txt .step-title { font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .step-txt .step-desc { font-size: 0.87rem; color: var(--gray-600); line-height: 1.5; }
+    .step-txt .step-desc code { font-family: 'Fira Code', monospace; background: var(--gray-200); padding: 1px 5px; border-radius: 3px; font-size: 0.85em; color: var(--navy); }
+
+    /* TERMINAL */
+    .term-intro { font-size: 0.97rem; color: var(--gray-600); line-height: 1.7; margin-bottom: 18px; }
+    .term-intro strong { color: var(--text); }
+    .term-window { background: #0d1117; border-radius: var(--radius); overflow: hidden; margin: 0 0 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.28); }
+    .term-bar { background: #21262d; padding: 9px 14px; display: flex; align-items: center; gap: 7px; }
+    .td { width: 12px; height: 12px; border-radius: 50%; }
+    .td-r { background: #ff5f57; } .td-y { background: #febc2e; } .td-g { background: #28c840; }
+    .term-title { font-size: 0.75rem; color: #8b949e; margin-left: auto; font-family: 'Fira Code', monospace; }
+    .term-body { padding: 18px 20px; font-family: 'Fira Code', monospace; font-size: 0.88rem; line-height: 1.9; min-height: 90px; }
+    .tl { display: block; }
+    .t-prompt { color: var(--gold); }
+    .t-cmd { color: #e6edf3; }
+    .t-out { color: #8b949e; }
+    .t-cursor { display: inline-block; width: 7px; height: 0.9em; background: var(--gold); animation: blink 1s step-end infinite; vertical-align: text-bottom; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .term-explain { background: var(--navy-mid); border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 4px; }
+    .term-explain p { font-size: 0.87rem; color: var(--gray-400); line-height: 1.6; margin: 0; }
+    .term-explain strong { color: var(--gold-light); }
+
+    /* CODE BLOCK */
+    .code-block { background: var(--navy); border-radius: var(--radius); overflow: hidden; margin: 16px 0; }
+    .code-hdr { background: var(--navy-mid); padding: 7px 16px; font-size: 0.72rem; color: var(--gray-400); font-family: 'Fira Code', monospace; }
+    .code-block pre { padding: 18px 20px; font-family: 'Fira Code', monospace; font-size: 0.83rem; color: #e6edf3; line-height: 1.75; overflow-x: auto; }
+    .kw { color: #ff7b72; } .str { color: #a5d6ff; } .cm { color: #8b949e; font-style: italic; }
+    .fn { color: #d2a8ff; } .num { color: #79c0ff; } .tag { color: #7ee787; } .attr { color: #79c0ff; }
+
+    /* QUIZ */
+    .quiz-q { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 18px; line-height: 1.55; }
+    .quiz-prog { font-size: 0.78rem; color: var(--gray-400); margin-bottom: 16px; }
+    .quiz-opts { display: flex; flex-direction: column; gap: 9px; }
+    .qopt { padding: 13px 16px; border-radius: var(--radius-sm); border: 2px solid var(--gray-200); background: var(--white); font-family: 'Fira Code', monospace; font-size: 0.9rem; cursor: pointer; text-align: left; transition: border-color 0.15s, background 0.15s; }
+    .qopt:hover:not(.answered) { border-color: var(--gold); background: var(--gold-pale); }
+    .qopt.correct { border-color: var(--green); background: rgba(46,204,113,0.09); color: var(--green-dark); pointer-events: none; }
+    .qopt.wrong { border-color: var(--red); background: rgba(231,76,60,0.07); color: var(--red); pointer-events: none; }
+    .qopt.dim { opacity: 0.4; pointer-events: none; }
+    .quiz-fb { padding: 12px 14px; border-radius: var(--radius-sm); margin-top: 12px; font-size: 0.87rem; line-height: 1.5; display: none; }
+    .quiz-fb.show { display: block; }
+    .quiz-fb.ok { background: rgba(46,204,113,0.1); color: var(--green-dark); border: 1px solid var(--green); }
+    .quiz-fb.no { background: rgba(231,76,60,0.07); color: var(--red); border: 1px solid var(--red); }
+    .quiz-cont { margin-top: 14px; padding: 9px 20px; background: var(--navy); color: var(--white); border: none; border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; display: none; }
+    .quiz-cont.show { display: inline-block; }
+
+    /* COMPLETE SCREEN */
+    .complete-wrap { text-align: center; padding: 48px 0 24px; }
+    .complete-icon { font-size: 3.5rem; margin-bottom: 14px; }
+    .complete-h { font-size: 1.7rem; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
+    .complete-p { font-size: 0.97rem; color: var(--gray-600); max-width: 360px; margin: 0 auto 24px; line-height: 1.65; }
+    .complete-xp { display: inline-block; background: var(--gold); color: var(--navy); font-weight: 700; font-size: 1rem; padding: 8px 24px; border-radius: 20px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .skill-row:nth-child(odd), .skill-row:nth-child(even) { justify-content: center; }
+      .skill-card { width: 100%; max-width: 340px; }
+      .path-spine { display: none; }
+      .lesson-foot { flex-direction: column-reverse; }
+      .foot-meta { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ ROADMAP VIEW ═══════════════════════════ -->
+<div id="roadmap-view">
+  <nav class="top-nav">
+    <div class="nav-brand">Learn <span>Claude Code</span></div>
+    <div id="nav-progress" class="nav-meta">0 of 24 lessons done</div>
+  </nav>
+  <div class="road-hero">
+    <h1>Your <em>Skills Journey</em></h1>
+    <p>Eight skills that unlock everything. Complete lessons in order or jump ahead — your progress saves automatically.</p>
+  </div>
+  <div class="path-wrapper">
+    <div class="path-spine"></div>
+    <div id="skill-nodes"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ LESSON VIEW ═══════════════════════════ -->
+<div id="lesson-view">
+  <nav class="top-nav lesson-hdr">
+    <button class="back-btn" onclick="backToRoadmap()">← Roadmap</button>
+    <div class="lesson-hdr-titles">
+      <div id="ls-skill-lbl" class="lesson-skill-lbl"></div>
+      <div id="ls-title-lbl" class="lesson-title-lbl"></div>
+    </div>
+    <div id="pg-dots" class="pg-dots"></div>
+  </nav>
+  <div class="lesson-picker-bar" id="lesson-picker-bar"></div>
+  <div class="lesson-body">
+    <div class="lesson-inner" id="lesson-content"></div>
+  </div>
+  <div class="lesson-foot">
+    <div class="foot-meta" id="foot-meta"></div>
+    <div class="foot-btns">
+      <button class="btn-prev" id="btn-prev" onclick="prevPage()">← Back</button>
+      <button class="btn-next" id="btn-next" onclick="nextPage()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// SKILLS DATA
+// ═══════════════════════════════════════════════════════════════════
+const SKILLS = [
+{
+  id:'terminal', icon:'💻', title:'Terminal Commands', badge:'Game Changer', badgeClass:'badge-gold', iconBg:'bg-gold',
+  tagline:'cd, ls, mkdir — you\'ll use these every session. Without them, you can\'t run Claude Code itself.',
+  lessons:[
+    { title:'Finding Your Way Around', pages:[
+      { type:'info', heading:'What is the terminal?',
+        body:[
+          'The terminal is a text window into your computer. Instead of clicking icons to open folders, you type short commands. It sounds old-fashioned, but it\'s still how nearly all development tools work — including Claude Code.',
+          'When you run Claude Code, you open a terminal, navigate to your project folder, and type <code>claude</code>. That\'s the whole setup. You don\'t need to be a command-line wizard — you just need three commands to feel at home.'
+        ],
+        tip:{ label:'The only three you need', body:'Master <code>pwd</code>, <code>ls</code>, and <code>cd</code> and you can navigate to any project on your computer. Everything else is optional.' }
+      },
+      { type:'terminal', heading:'<span class="mono">ls</span> — What\'s in this folder?',
+        intro:'<strong>ls</strong> lists everything in your current folder. Run it any time you want to see what\'s around you.',
+        lines:[
+          { prompt:true, text:'ls' },
+          { prompt:false, text:'Desktop/    Documents/  Downloads/' },
+          { prompt:false, text:'projects/   README.md' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'cd projects' },
+          { prompt:true, text:'ls' },
+          { prompt:false, text:'my-portfolio/    todo-app/    resume-site/' }
+        ],
+        explain:'Folders end with <strong>/</strong>. Files don\'t. After <code>cd projects</code> we moved into the projects folder, then <code>ls</code> showed what\'s inside it.'
+      },
+      { type:'terminal', heading:'<span class="mono">pwd</span> and <span class="mono">cd</span> — Where am I, and how do I move?',
+        intro:'<strong>pwd</strong> (Print Working Directory) tells you your exact location. <strong>cd</strong> (Change Directory) moves you into a folder.',
+        lines:[
+          { prompt:true, text:'pwd' },
+          { prompt:false, text:'/Users/yourname/projects' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'cd my-portfolio' },
+          { prompt:true, text:'pwd' },
+          { prompt:false, text:'/Users/yourname/projects/my-portfolio' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'cd ..' },
+          { prompt:true, text:'pwd' },
+          { prompt:false, text:'/Users/yourname/projects' }
+        ],
+        explain:'<strong>cd ..</strong> moves you one level up — back to the parent folder. Think of it like clicking the back button in a file browser.'
+      }
+    ]},
+    { title:'Creating Things', pages:[
+      { type:'terminal', heading:'<span class="mono">mkdir</span> — Create a folder',
+        intro:'<strong>mkdir</strong> (Make Directory) creates a new folder instantly. This is how you start every new project.',
+        lines:[
+          { prompt:true, text:'mkdir my-portfolio' },
+          { prompt:true, text:'ls' },
+          { prompt:false, text:'my-portfolio/' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'cd my-portfolio' },
+          { prompt:true, text:'ls' },
+          { prompt:false, text:'(empty — new folder is blank)' }
+        ],
+        explain:'No confirmation message means it worked. If there\'s an error you\'ll see it in red. Silence is success in the terminal.'
+      },
+      { type:'terminal', heading:'<span class="mono">touch</span> — Create a file',
+        intro:'<strong>touch</strong> creates an empty file. Use it to stub out your project files before Claude fills them in.',
+        lines:[
+          { prompt:true, text:'touch index.html' },
+          { prompt:true, text:'touch style.css' },
+          { prompt:true, text:'touch script.js' },
+          { prompt:true, text:'ls' },
+          { prompt:false, text:'index.html   script.js   style.css' }
+        ],
+        explain:'Now you have three empty files ready for Claude Code to populate. You could also just tell Claude "create an index.html, style.css and script.js" and it\'ll do this for you — but knowing <code>touch</code> is handy.'
+      },
+      { type:'quiz', heading:'Quick Check', questions:[
+        { q:'You want to see what files are in your current folder. Which command?', options:['pwd','mkdir','ls','touch'], correct:2, fb:'ls (List) shows the contents of your current directory.' },
+        { q:'You\'ve just created a new folder called "blog". What command moves you inside it?', options:['ls blog','pwd blog','mkdir blog','cd blog'], correct:3, fb:'cd (Change Directory) navigates into a folder. cd blog puts you inside it.' }
+      ]}
+    ]},
+    { title:'Claude Code in the Terminal', pages:[
+      { type:'info', heading:'Installing Claude Code',
+        body:[
+          'Claude Code is a command-line tool made by Anthropic. To install it, you need Node.js on your computer (download from nodejs.org if you don\'t have it), then run one install command.',
+          'You only do this once. After that, <code>claude</code> is available in any terminal window on your machine.'
+        ],
+        tip:{ label:'Install command', body:'<code>npm install -g @anthropic-ai/claude-code</code> — the <code>-g</code> flag installs it globally so you can use it from any folder.' }
+      },
+      { type:'terminal', heading:'Running <span class="mono">claude</span> in your project',
+        intro:'Navigate to your project folder first, then type <code>claude</code>. Claude Code starts up and waits for your instructions.',
+        lines:[
+          { prompt:true, text:'cd ~/projects/my-portfolio' },
+          { prompt:true, text:'claude' },
+          { prompt:false, text:'✓ Claude Code (claude-sonnet-4-6)' },
+          { prompt:false, text:'' },
+          { prompt:false, text:'Working directory: /Users/yourname/projects/my-portfolio' },
+          { prompt:false, text:'' },
+          { prompt:false, text:'> _' }
+        ],
+        explain:'The <strong>&gt;</strong> prompt means Claude is ready. Type your request in plain English — "build me a portfolio page with my name and three projects" — and Claude handles the rest.'
+      },
+      { type:'info', heading:'The complete workflow',
+        body:['From here, every Claude Code session looks the same:'],
+        steps:[
+          { title:'Open a terminal', desc:'Mac: press Cmd+Space, type "Terminal", press Enter.' },
+          { title:'Navigate to your project', desc:'<code>cd ~/projects/my-portfolio</code> (or wherever your project lives).' },
+          { title:'Start Claude Code', desc:'Type <code>claude</code> and press Enter.' },
+          { title:'Describe what you want', desc:'Write a clear prompt. Claude reads your files, makes changes, and tells you what it did.' },
+          { title:'Review and iterate', desc:'Open your project in the browser. If something\'s off, describe the problem to Claude.' }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'html', icon:'🌐', title:'HTML & CSS', badge:'Worth Learning', badgeClass:'badge-blue', iconBg:'bg-blue',
+  tagline:'HTML is structure, CSS is style. Knowing the difference lets you give Claude precise instructions.',
+  lessons:[
+    { title:'HTML Is Structure', pages:[
+      { type:'info', heading:'HTML tells browsers what things are',
+        body:[
+          'HTML (HyperText Markup Language) uses <strong>tags</strong> to describe the meaning of content. A <code>&lt;h1&gt;</code> is a top-level heading. A <code>&lt;p&gt;</code> is a paragraph. A <code>&lt;button&gt;</code> is a clickable button.',
+          'The browser reads your HTML and builds a visual page from it. CSS then controls how each element looks — colors, sizes, spacing. Think of HTML as the skeleton and CSS as the skin and clothes.'
+        ],
+        tip:{ label:'Why it matters for Claude', body:'When you say "add a heading and two columns below it," Claude needs to know you mean an <code>&lt;h1&gt;</code> and a two-column <code>&lt;div&gt;</code> layout. Knowing the terms makes your prompts 10x more precise.' }
+      },
+      { type:'code', heading:'The tags you\'ll use most',
+        lang:'HTML',
+        code:`&lt;<span class="tag">h1</span>&gt;My Portfolio&lt;/<span class="tag">h1</span>&gt;          <span class="cm">&lt;!-- big heading --&gt;</span>
+&lt;<span class="tag">p</span>&gt;I build web apps.&lt;/<span class="tag">p</span>&gt;        <span class="cm">&lt;!-- paragraph --&gt;</span>
+&lt;<span class="tag">a</span> <span class="attr">href</span>=<span class="str">"https://..."</span>&gt;Link&lt;/<span class="tag">a</span>&gt;  <span class="cm">&lt;!-- hyperlink --&gt;</span>
+&lt;<span class="tag">img</span> <span class="attr">src</span>=<span class="str">"photo.jpg"</span> <span class="attr">alt</span>=<span class="str">"Me"</span>&gt;     <span class="cm">&lt;!-- image --&gt;</span>
+&lt;<span class="tag">button</span>&gt;Click me&lt;/<span class="tag">button</span>&gt;       <span class="cm">&lt;!-- button --&gt;</span>
+&lt;<span class="tag">div</span>&gt;A generic container&lt;/<span class="tag">div</span>&gt;  <span class="cm">&lt;!-- grouping box --&gt;</span>`,
+        explain:'The <code>div</code> is the workhorse of layout. When Claude creates columns or sections, it\'s almost always using nested divs.'
+      },
+      { type:'info', heading:'Giving Claude precise HTML instructions',
+        body:[
+          'Vague: "Add some stuff at the top." Better: "Add an <code>&lt;h1&gt;</code> with my name, followed by a <code>&lt;p&gt;</code> with a one-sentence bio."',
+          'You don\'t need to write the HTML yourself — Claude does that. But naming the elements correctly means Claude builds exactly what you pictured, not its best guess.'
+        ],
+        keyPoint:{ body:'You\'re the architect. Claude is the builder. Give Claude blueprints, not vibes.' }
+      }
+    ]},
+    { title:'CSS Is Style', pages:[
+      { type:'info', heading:'CSS controls how things look',
+        body:[
+          'CSS (Cascading Style Sheets) lets you change the color, size, font, spacing, and layout of any HTML element. You write a <strong>selector</strong> (what to target) and then <strong>properties</strong> (what to change).',
+          'The most common selectors: an element name like <code>h1</code>, a class like <code>.card</code>, or an ID like <code>#header</code>. Claude uses classes constantly — they\'re the cleanest way to style groups of elements.'
+        ]
+      },
+      { type:'code', heading:'CSS in action',
+        lang:'CSS',
+        code:`<span class="cm">/* Target all h1 elements */</span>
+<span class="tag">h1</span> {
+  color: <span class="str">#c9a84c</span>;
+  font-size: <span class="num">2rem</span>;
+  font-weight: <span class="num">800</span>;
+}
+
+<span class="cm">/* Target elements with class="card" */</span>
+.<span class="fn">card</span> {
+  background: <span class="str">white</span>;
+  border-radius: <span class="num">12px</span>;
+  padding: <span class="num">24px</span>;
+  box-shadow: <span class="num">0</span> <span class="num">4px</span> <span class="num">20px</span> rgba(<span class="num">0</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0.1</span>);
+}`,
+        explain:'When Claude builds a UI, it usually creates a <code>&lt;div class="card"&gt;</code> in HTML and a <code>.card { }</code> block in CSS. Now you\'ll recognize exactly what\'s happening.'
+      },
+      { type:'info', heading:'The box model — every element is a box',
+        body:[
+          'Every HTML element is a rectangular box with four zones: <strong>content</strong> (the text or image), <strong>padding</strong> (space inside the border), <strong>border</strong> (the edge), and <strong>margin</strong> (space outside).',
+          'When you tell Claude "give it more breathing room," it adds padding. When you say "push it away from the element above," it adds margin-top. Knowing these terms makes your feedback land perfectly.'
+        ],
+        tip:{ label:'Quick reference', body:'<code>padding</code> = inside space. <code>margin</code> = outside space. <code>border</code> = the line around it.' }
+      }
+    ]},
+    { title:'Reading Claude\'s Output', pages:[
+      { type:'code', heading:'Anatomy of a Claude HTML file',
+        lang:'HTML',
+        code:`&lt;<span class="tag">!DOCTYPE html</span>&gt;
+&lt;<span class="tag">html</span>&gt;
+  &lt;<span class="tag">head</span>&gt;
+    &lt;<span class="tag">style</span>&gt; <span class="cm">/* all CSS goes here */</span> &lt;/<span class="tag">style</span>&gt;
+  &lt;/<span class="tag">head</span>&gt;
+  &lt;<span class="tag">body</span>&gt;
+    &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="str">"container"</span>&gt;
+      &lt;<span class="tag">h1</span>&gt;My Portfolio&lt;/<span class="tag">h1</span>&gt;
+      &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="str">"cards"</span>&gt;
+        &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="str">"card"</span>&gt;...&lt;/<span class="tag">div</span>&gt;
+      &lt;/<span class="tag">div</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+    &lt;<span class="tag">script</span>&gt; <span class="cm">/* all JS goes here */</span> &lt;/<span class="tag">script</span>&gt;
+  &lt;/<span class="tag">body</span>&gt;
+&lt;/<span class="tag">html</span>&gt;`,
+        explain:'Single-file apps from Claude always follow this pattern: CSS in <code>&lt;style&gt;</code> inside <code>&lt;head&gt;</code>, JavaScript in <code>&lt;script&gt;</code> at the bottom of <code>&lt;body&gt;</code>.'
+      },
+      { type:'info', heading:'Making targeted changes',
+        body:[
+          'When you want to tweak something Claude built, find the relevant class name and tell Claude exactly what to change: "In the <code>.card</code> styles, change the background to navy and the text to white."',
+          'This is so much faster than "make the cards dark." The class name gives Claude a precise address.'
+        ],
+        tip:{ label:'Right-click shortcut', body:'Right-click any element in the browser → Inspect. Chrome shows you the exact class names. Copy one and use it in your next Claude prompt.' }
+      },
+      { type:'quiz', heading:'Quick Check', questions:[
+        { q:'Claude created a <div class="hero">. What CSS selector targets it?', options:['div {}','hero {}','.hero {}','#hero {}'], correct:2, fb:'.hero {} — the dot means "class". Classes are the most common selector Claude uses.' },
+        { q:'Your card has text squished against its edges. Which CSS property adds space inside the card border?', options:['margin','padding','border','width'], correct:1, fb:'padding adds space inside the border. margin adds space outside.' }
+      ]}
+    ]}
+  ]
+},
+{
+  id:'js', icon:'⚙️', title:'JavaScript', badge:'Worth Learning', badgeClass:'badge-blue', iconBg:'bg-blue',
+  tagline:'Variables, functions, arrays — enough to read what Claude writes and catch obvious bugs.',
+  lessons:[
+    { title:'Variables & Functions', pages:[
+      { type:'code', heading:'Variables store data',
+        lang:'JavaScript',
+        code:`<span class="cm">// Three ways to store data</span>
+<span class="kw">const</span> name = <span class="str">"Alex"</span>;          <span class="cm">// never changes</span>
+<span class="kw">let</span> score = <span class="num">0</span>;              <span class="cm">// can change later</span>
+<span class="kw">let</span> isLoggedIn = <span class="kw">false</span>;    <span class="cm">// true/false = boolean</span>
+
+<span class="cm">// Update a let variable</span>
+score = score + <span class="num">10</span>;         <span class="cm">// score is now 10</span>
+console.<span class="fn">log</span>(score);         <span class="cm">// prints: 10</span>`,
+        explain:'Use <code>const</code> when the value never changes (a name, a URL). Use <code>let</code> when it might change (a score, a counter). Claude follows this convention — so should you.'
+      },
+      { type:'code', heading:'Functions do things',
+        lang:'JavaScript',
+        code:`<span class="cm">// Define a function</span>
+<span class="kw">function</span> <span class="fn">greet</span>(name) {
+  <span class="kw">return</span> <span class="str">"Hello, "</span> + name + <span class="str">"!"</span>;
+}
+
+<span class="cm">// Arrow function (same thing, shorter)</span>
+<span class="kw">const</span> <span class="fn">greet</span> = (name) => <span class="str">"Hello, "</span> + name + <span class="str">"!"</span>;
+
+<span class="cm">// Call it</span>
+<span class="fn">greet</span>(<span class="str">"Alex"</span>);   <span class="cm">// → "Hello, Alex!"</span>`,
+        explain:'Claude uses arrow functions constantly. When you see <code>const something = () =&gt; { ... }</code>, that\'s just a function assigned to a variable.'
+      },
+      { type:'info', heading:'Reading Claude\'s JavaScript',
+        body:[
+          'Claude\'s JS will look unfamiliar at first, but it\'s always built from the same pieces: variables (<code>const</code>/<code>let</code>), functions (<code>function</code> or <code>=&gt;</code>), and logic (<code>if</code>, loops).',
+          'You don\'t need to write it yourself. You need to read it well enough to spot when something\'s wrong — a misspelled variable name, a function that\'s called before it\'s defined.'
+        ],
+        keyPoint:{ body:'Reading code is 10x easier than writing it. Scan for the variable names and function names — they tell you the whole story.' }
+      }
+    ]},
+    { title:'Arrays & Objects', pages:[
+      { type:'code', heading:'Arrays are ordered lists',
+        lang:'JavaScript',
+        code:`<span class="kw">const</span> projects = [
+  <span class="str">"Portfolio site"</span>,
+  <span class="str">"Todo app"</span>,
+  <span class="str">"Weather dashboard"</span>
+];
+
+projects[<span class="num">0</span>];              <span class="cm">// "Portfolio site" (index starts at 0)</span>
+projects.<span class="fn">length</span>;         <span class="cm">// 3</span>
+projects.<span class="fn">push</span>(<span class="str">"Blog"</span>);  <span class="cm">// add to end</span>
+
+<span class="cm">// Loop through every item</span>
+projects.<span class="fn">forEach</span>(p => console.<span class="fn">log</span>(p));`,
+        explain:'When Claude renders a list of cards on the page, it usually stores the data in an array and loops through it with <code>forEach</code> or <code>map</code>.'
+      },
+      { type:'code', heading:'Objects are key-value stores',
+        lang:'JavaScript',
+        code:`<span class="kw">const</span> user = {
+  name: <span class="str">"Alex"</span>,
+  score: <span class="num">42</span>,
+  isPremium: <span class="kw">true</span>
+};
+
+<span class="cm">// Read a value</span>
+user.name;          <span class="cm">// "Alex"</span>
+user[<span class="str">"score"</span>];    <span class="cm">// 42  (same thing)</span>
+
+<span class="cm">// Update a value</span>
+user.score = <span class="num">100</span>;`,
+        explain:'Objects are everywhere in Claude\'s code. API responses come back as objects. Component state is an object. Config settings are objects. Spot them by the curly braces and colon-separated pairs.'
+      },
+      { type:'quiz', heading:'Quick Check', questions:[
+        { q:'const colors = ["red","green","blue"]; What is colors[1]?', options:['"red"','"green"','"blue"','undefined'], correct:1, fb:'Arrays are zero-indexed. Index 0 = "red", index 1 = "green", index 2 = "blue".' },
+        { q:'const person = { name: "Sam", age: 30 }; How do you read the name?', options:['person[name]','person.name()','person.name','person("name")'], correct:2, fb:'person.name — dot notation is the standard way to access object properties.' }
+      ]}
+    ]},
+    { title:'The Browser Environment', pages:[
+      { type:'code', heading:'The DOM — your page as a live tree',
+        lang:'JavaScript',
+        code:`<span class="cm">// Find an element</span>
+<span class="kw">const</span> btn = document.<span class="fn">getElementById</span>(<span class="str">"myButton"</span>);
+<span class="kw">const</span> cards = document.<span class="fn">querySelectorAll</span>(<span class="str">".card"</span>);
+
+<span class="cm">// Change content</span>
+btn.textContent = <span class="str">"Click me!"</span>;
+
+<span class="cm">// Change style</span>
+btn.style.backgroundColor = <span class="str">"gold"</span>;
+
+<span class="cm">// Show / hide</span>
+btn.style.display = <span class="str">"none"</span>;     <span class="cm">// hide</span>
+btn.style.display = <span class="str">"block"</span>;    <span class="cm">// show</span>`,
+        explain:'The DOM (Document Object Model) is the browser\'s live version of your HTML. JavaScript can read and rewrite it in real time — that\'s how interactive UIs work.'
+      },
+      { type:'code', heading:'Events — react to clicks and input',
+        lang:'JavaScript',
+        code:`<span class="kw">const</span> btn = document.<span class="fn">getElementById</span>(<span class="str">"myButton"</span>);
+
+<span class="cm">// Run code when button is clicked</span>
+btn.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {
+  console.<span class="fn">log</span>(<span class="str">"Button clicked!"</span>);
+});
+
+<span class="cm">// Common events</span>
+<span class="cm">// "click"     — mouse click</span>
+<span class="cm">// "input"     — text field change</span>
+<span class="cm">// "submit"    — form submitted</span>
+<span class="cm">// "keydown"   — key pressed</span>`,
+        explain:'When Claude adds interactivity, it uses <code>addEventListener</code>. Spotting an event listener tells you exactly what triggers a piece of code.'
+      },
+      { type:'info', heading:'console.log is your best friend',
+        body:[
+          '<code>console.log()</code> prints any value to the browser\'s DevTools Console. Claude uses it constantly for debugging, and you should too.',
+          'When something isn\'t working, add <code>console.log(theValue)</code> right before the problem line and open DevTools (F12 or Cmd+Option+I). You\'ll see exactly what the code thinks the value is — which almost always reveals the bug.'
+        ],
+        tip:{ label:'Pro move', body:'Paste a console error directly into Claude: "I see this error: TypeError: Cannot read properties of undefined (reading \'name\')." Claude almost always knows exactly what went wrong.' }
+      }
+    ]}
+  ]
+},
+{
+  id:'git', icon:'🔐', title:'Git Basics', badge:'Game Changer', badgeClass:'badge-gold', iconBg:'bg-gold',
+  tagline:'Save your work before every big change. One git commit = undo in 10 seconds.',
+  lessons:[
+    { title:'What Git Does', pages:[
+      { type:'info', heading:'Git takes snapshots of your code',
+        body:[
+          'Git is a version control system — it tracks every change you make to your files over time. Each saved snapshot is called a <strong>commit</strong>. If Claude produces a broken output, you revert to the last commit and you\'re back to working code in seconds.',
+          'Without Git, a bad Claude output means manually undoing hours of changes. With Git, it\'s one command. This is why "save with Git before every big change" is a non-negotiable habit.'
+        ],
+        keyPoint:{ body:'Git is your undo button. Commit before you ask Claude to do anything significant.' }
+      },
+      { type:'terminal', heading:'<span class="mono">git init</span> and <span class="mono">git add</span>',
+        intro:'Start tracking any folder with <strong>git init</strong>. Then stage your files with <strong>git add</strong> before saving a snapshot.',
+        lines:[
+          { prompt:true, text:'cd my-portfolio' },
+          { prompt:true, text:'git init' },
+          { prompt:false, text:'Initialized empty Git repository in /Users/yourname/my-portfolio/.git/' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'git add .' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'git status' },
+          { prompt:false, text:'Changes to be committed:' },
+          { prompt:false, text:'  new file:   index.html' },
+          { prompt:false, text:'  new file:   style.css' }
+        ],
+        explain:'<strong>git add .</strong> stages every changed file (the dot means "everything"). <strong>git status</strong> shows what\'s staged and ready to commit.'
+      },
+      { type:'terminal', heading:'<span class="mono">git commit</span> — Save the snapshot',
+        intro:'A commit is a permanent snapshot with a message describing what changed. Write short, honest messages.',
+        lines:[
+          { prompt:true, text:'git commit -m "Add initial portfolio page"' },
+          { prompt:false, text:'[main (root-commit) a3f2c1b] Add initial portfolio page' },
+          { prompt:false, text:' 2 files changed, 85 insertions(+)' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'git log --oneline' },
+          { prompt:false, text:'a3f2c1b (HEAD -> main) Add initial portfolio page' }
+        ],
+        explain:'The commit hash (<code>a3f2c1b</code>) is Git\'s unique ID for this snapshot. <code>git log --oneline</code> shows your history — each line is one commit you can return to.'
+      }
+    ]},
+    { title:'Branching', pages:[
+      { type:'info', heading:'Branches let you experiment safely',
+        body:[
+          'A branch is a parallel copy of your code. You create one before making a big change — like "let Claude redesign the whole nav bar." If it goes wrong, you delete the branch and your main code is untouched.',
+          'The default branch is called <code>main</code>. Think of branches as "what if" timelines that you can merge back when the experiment succeeds.'
+        ],
+        tip:{ label:'When to branch', body:'Any time you tell Claude to do a significant rewrite, refactor, or new feature — make a branch first. Takes 5 seconds.' }
+      },
+      { type:'terminal', heading:'Creating and switching branches',
+        intro:'<strong>git checkout -b</strong> creates a new branch and switches to it in one step.',
+        lines:[
+          { prompt:true, text:'git checkout -b redesign-nav' },
+          { prompt:false, text:"Switched to a new branch 'redesign-nav'" },
+          { prompt:false, text:'' },
+          { prompt:true, text:'git branch' },
+          { prompt:false, text:'  main' },
+          { prompt:false, text:'* redesign-nav' },
+          { prompt:false, text:'' },
+          { prompt:false, text:'  (the * shows your current branch)' }
+        ],
+        explain:'Now any commits you make land on <code>redesign-nav</code>, not <code>main</code>. Your original code is safe.'
+      },
+      { type:'terminal', heading:'Merging back to main',
+        intro:'When the branch looks good, switch back to main and merge. If it\'s a disaster, just delete the branch.',
+        lines:[
+          { prompt:true, text:'git checkout main' },
+          { prompt:false, text:"Switched to branch 'main'" },
+          { prompt:false, text:'' },
+          { prompt:true, text:'git merge redesign-nav' },
+          { prompt:false, text:'Updating a3f2c1b..d9e3f7a' },
+          { prompt:false, text:'Fast-forward' },
+          { prompt:false, text:' index.html | 24 +++++++++++++' },
+          { prompt:false, text:'' },
+          { prompt:false, text:'  — OR, to discard: —' },
+          { prompt:true, text:'git branch -D redesign-nav' },
+          { prompt:false, text:"Deleted branch redesign-nav (was d9e3f7a)." }
+        ],
+        explain:'<code>git merge</code> brings the branch changes into main. <code>git branch -D</code> deletes the branch entirely — use this when the experiment failed.'
+      }
+    ]},
+    { title:'Undoing Claude\'s Mistakes', pages:[
+      { type:'terminal', heading:'<span class="mono">git status</span> and <span class="mono">git diff</span>',
+        intro:'Before you undo anything, check what actually changed. <strong>git status</strong> lists changed files; <strong>git diff</strong> shows line-by-line changes.',
+        lines:[
+          { prompt:true, text:'git status' },
+          { prompt:false, text:'Changes not staged for commit:' },
+          { prompt:false, text:'  modified:   index.html' },
+          { prompt:false, text:'  modified:   style.css' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'git diff index.html' },
+          { prompt:false, text:'- <h1>Old Title</h1>' },
+          { prompt:false, text:'+ <h1>New Title</h1>' }
+        ],
+        explain:'Red lines (−) are what was removed. Green lines (+) are what was added. This shows you exactly what Claude changed before you decide whether to keep it.'
+      },
+      { type:'terminal', heading:'<span class="mono">git restore</span> — Undo file changes',
+        intro:'If Claude\'s changes to a file look wrong, restore it to the last commit with one command.',
+        lines:[
+          { prompt:true, text:'git restore index.html' },
+          { prompt:false, text:'' },
+          { prompt:false, text:'(file reverts to last committed version)' },
+          { prompt:false, text:'' },
+          { prompt:true, text:'git restore .' },
+          { prompt:false, text:'' },
+          { prompt:false, text:'(reverts ALL changed files at once)' }
+        ],
+        explain:'<code>git restore .</code> is the nuclear option — it wipes all uncommitted changes across every file. Only use it when you want to start the session from scratch.'
+      },
+      { type:'info', heading:'Your safety net workflow',
+        body:['Combine these habits and a bad Claude output costs you nothing:'],
+        steps:[
+          { title:'Commit before asking Claude anything big', desc:'<code>git add . && git commit -m "before Claude nav redesign"</code>' },
+          { title:'Let Claude work', desc:'Review what changed with <code>git diff</code> or just open the browser.' },
+          { title:'Like it? Commit again.', desc:'<code>git add . && git commit -m "nav redesign complete"</code>' },
+          { title:'Hate it? Restore.', desc:'<code>git restore .</code> — you\'re back to step 1 instantly.' }
+        ],
+        tip:{ label:'One-liner habit', body:'Before every Claude session: <code>git add . && git commit -m "checkpoint"</code>' }
+      }
+    ]}
+  ]
+},
+{
+  id:'apis', icon:'🔌', title:'How APIs Work', badge:'Worth Learning', badgeClass:'badge-blue', iconBg:'bg-blue',
+  tagline:'Understanding requests and JSON lets you connect Claude\'s code to real data — weather, Spotify, your database.',
+  lessons:[
+    { title:'What\'s an API?', pages:[
+      { type:'info', heading:'APIs let programs talk to each other',
+        body:[
+          'API stands for Application Programming Interface. In practice, it\'s a URL you can call to get data back. Ask the weather API for London\'s forecast → it returns the temperature. Ask the Spotify API for a playlist → it returns the songs.',
+          'When Claude builds a weather app for you, it writes JavaScript that calls a weather API, reads the response, and displays it on the page. Understanding APIs means you can choose which services to connect and describe them clearly to Claude.'
+        ],
+        tip:{ label:'The simplest mental model', body:'An API is like a vending machine. You put in a request (push a button), it gives back data (drops the snack). You don\'t need to know what\'s inside the machine.' }
+      },
+      { type:'info', heading:'GET vs. POST — the two request types you\'ll use most',
+        body:[
+          '<strong>GET</strong> requests fetch data. When your browser loads a web page, it\'s sending a GET request. When a weather app asks for the forecast, it sends a GET request. No data is sent — you\'re just asking for something.',
+          '<strong>POST</strong> requests send data. When you submit a login form, the browser sends a POST request with your username and password. When Claude sends a message to the Anthropic API, it\'s a POST with your prompt.'
+        ],
+        keyPoint:{ body:'GET = fetch. POST = send. That\'s 80% of API work.' }
+      },
+      { type:'info', heading:'Reading API documentation',
+        body:[
+          'Every public API has docs that describe its endpoints — the URLs you call and the parameters they accept. When you find an API you want to use, paste its documentation URL into Claude and say "use this API to show me the current weather in Chicago."',
+          'Claude reads the docs, figures out the right URL format, writes the fetch call, and handles the response. You just need to find the right API and point Claude at its docs.'
+        ],
+        tip:{ label:'Good starting APIs', body:'OpenWeatherMap (weather), REST Countries (country data), and the Dog CEO API (random dog photos) are free, no-auth APIs perfect for first projects.' }
+      }
+    ]},
+    { title:'JSON — The Data Format', pages:[
+      { type:'code', heading:'JSON is just structured text',
+        lang:'JSON',
+        code:`{
+  <span class="attr">"city"</span>: <span class="str">"London"</span>,
+  <span class="attr">"temperature"</span>: <span class="num">18</span>,
+  <span class="attr">"conditions"</span>: <span class="str">"partly cloudy"</span>,
+  <span class="attr">"forecast"</span>: [
+    { <span class="attr">"day"</span>: <span class="str">"Mon"</span>, <span class="attr">"high"</span>: <span class="num">20</span> },
+    { <span class="attr">"day"</span>: <span class="str">"Tue"</span>, <span class="attr">"high"</span>: <span class="num">17</span> }
+  ]
+}`,
+        explain:'JSON (JavaScript Object Notation) looks exactly like a JavaScript object — because it is one. Keys in quotes, values after colons, nested arrays with brackets. Once you can read JSON, you can describe any API response to Claude.'
+      },
+      { type:'code', heading:'Reading a JSON response in JavaScript',
+        lang:'JavaScript',
+        code:`<span class="cm">// Assume we got this data from a weather API</span>
+<span class="kw">const</span> data = {
+  city: <span class="str">"London"</span>,
+  temperature: <span class="num">18</span>,
+  forecast: [
+    { day: <span class="str">"Mon"</span>, high: <span class="num">20</span> },
+    { day: <span class="str">"Tue"</span>, high: <span class="num">17</span> }
+  ]
+};
+
+<span class="cm">// Access values</span>
+data.city;               <span class="cm">// "London"</span>
+data.temperature;        <span class="cm">// 18</span>
+data.forecast[<span class="num">0</span>].day;  <span class="cm">// "Mon"</span>`,
+        explain:'JSON in JavaScript is just an object. Read it with dot notation. Access array items by index. Tell Claude the structure and it handles the parsing.'
+      },
+      { type:'quiz', heading:'Quick Check', questions:[
+        { q:'An API response has: { "users": [ {"name":"Alice"}, {"name":"Bob"} ] }. How do you get "Bob"?', options:['data.users[1]','data.users[1].name','data.users.Bob','data["Bob"]'], correct:1, fb:'data.users[1] gets the second user object, then .name gets the name property. Zero-indexed arrays + dot notation.' },
+        { q:'You want to load data from an API without sending any data. Which request type?', options:['POST','GET','PUT','DELETE'], correct:1, fb:'GET requests fetch data. POST sends data. For reading from an API, almost always use GET.' }
+      ]}
+    ]},
+    { title:'fetch() in JavaScript', pages:[
+      { type:'code', heading:'Calling an API with fetch()',
+        lang:'JavaScript',
+        code:`<span class="cm">// Call a weather API</span>
+<span class="kw">const</span> <span class="fn">getWeather</span> = <span class="kw">async</span> (city) => {
+  <span class="kw">const</span> url = <span class="str">\`https://api.weather.com/v1/\${city}\`</span>;
+  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(url);
+  <span class="kw">const</span> data = <span class="kw">await</span> response.<span class="fn">json</span>();
+  <span class="kw">return</span> data;
+};
+
+<span class="fn">getWeather</span>(<span class="str">"London"</span>).<span class="fn">then</span>(data => {
+  console.<span class="fn">log</span>(data.temperature); <span class="cm">// 18</span>
+});`,
+        explain:'<code>async/await</code> is how modern JavaScript handles the wait for an API response. The <code>await</code> keyword pauses until the response arrives. <code>.json()</code> converts the raw response to a JavaScript object.'
+      },
+      { type:'info', heading:'Asking Claude to connect real data',
+        body:[
+          'Now that you understand fetch() and JSON, you can give Claude precise instructions: "Use fetch() to call the OpenWeatherMap API (my key is XYZ). Display the current temperature and a 3-day forecast. Store the API key in a variable at the top."',
+          'Claude will write the entire fetch call, parse the JSON, and render the data on the page. Your job is to supply the API key and describe how you want the data displayed.'
+        ],
+        steps:[
+          { title:'Find an API', desc:'Google "[thing you want] API free" — there\'s an API for almost everything.' },
+          { title:'Get an API key', desc:'Most APIs require a free account. The key proves it\'s you making the requests.' },
+          { title:'Give Claude the docs URL + key', desc:'"Use this API [URL]. My key is [KEY]. Show me [data] in [format]."' }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'devtools', icon:'🔍', title:'Chrome DevTools', badge:'Game Changer', badgeClass:'badge-gold', iconBg:'bg-gold',
+  tagline:'Right-click → Inspect. The Console shows errors in red. Paste that error into Claude.',
+  lessons:[
+    { title:'Opening DevTools', pages:[
+      { type:'info', heading:'DevTools is built into every browser',
+        body:[
+          'Chrome DevTools is a set of developer tools built directly into Chrome (and Edge). It lets you inspect the HTML, see live CSS, read JavaScript errors, and watch network requests — all without leaving the browser.',
+          'You don\'t install anything. It\'s always there, one right-click away.'
+        ],
+        steps:[
+          { title:'Open with right-click', desc:'Right-click any element on any page → click "Inspect."' },
+          { title:'Open with keyboard', desc:'Mac: <code>Cmd + Option + I</code>. Windows/Linux: <code>F12</code> or <code>Ctrl + Shift + I</code>.' },
+          { title:'Open the Console directly', desc:'Mac: <code>Cmd + Option + J</code>. This jumps straight to the Console tab.' }
+        ]
+      },
+      { type:'info', heading:'The Elements panel — live HTML editor',
+        body:[
+          'The Elements panel shows your page\'s full HTML tree. Click any element and the right side shows its CSS. You can edit both live — changes appear instantly, but they\'re not saved to your file.',
+          'This is the fastest way to experiment with CSS changes before telling Claude to make them permanent. Try a color, see if you like it, then paste the exact value to Claude.'
+        ],
+        tip:{ label:'Game-changer move', body:'Hover over an element in the Elements panel and Chrome highlights it on the page with its exact dimensions and box model measurements.' }
+      },
+      { type:'info', heading:'The Console — your error log',
+        body:[
+          'The Console tab is where JavaScript output and errors appear. Every <code>console.log()</code> in your code prints here. Every JavaScript error appears in red with a description and a line number.',
+          'Open the Console whenever something isn\'t working. The red error message is almost always the fastest path to a fix — especially when you paste it straight into Claude.'
+        ],
+        keyPoint:{ body:'See a red error in the Console? Copy the full message and paste it to Claude: "I\'m seeing this error: [paste]." Claude knows what nearly every error means.' }
+      }
+    ]},
+    { title:'Reading Errors', pages:[
+      { type:'info', heading:'What JavaScript errors look like',
+        body:[
+          'Errors in the Console follow a pattern: the error type, a colon, a description, and a file + line number. The most common ones are:',
+        ],
+        breakdown:[
+          { cmd:'TypeError', desc:'<strong>You called something that doesn\'t exist.</strong> Usually means a variable is <code>undefined</code> or <code>null</code> when you try to use it.' },
+          { cmd:'ReferenceError', desc:'<strong>You used a variable that was never declared.</strong> Classic spelling mistake — <code>usre</code> instead of <code>user</code>.' },
+          { cmd:'SyntaxError', desc:'<strong>The code isn\'t valid JavaScript.</strong> Often a missing bracket, quote, or comma.' },
+          { cmd:'404 (Not Found)', desc:'<strong>A resource couldn\'t be loaded.</strong> Wrong file path, wrong URL, or a fetch() to an API that doesn\'t exist.' }
+        ]
+      },
+      { type:'info', heading:'Reading the stack trace',
+        body:[
+          'Below the error message is a stack trace — a list of function calls that led to the crash. Read it top to bottom: the top line is where the error happened, the lines below show how the code got there.',
+          'You usually only need the first line: it tells you the file name and line number. Open that file, go to that line, and you\'ll see the problem (or paste it to Claude and skip that step entirely).'
+        ],
+        tip:{ label:'Click to jump', body:'Click any file:line in the Console output and Chrome opens the Sources panel right at that line. No searching required.' }
+      },
+      { type:'info', heading:'Pasting errors into Claude',
+        body:[
+          'The fastest debugging loop: see error → copy full message → paste to Claude.',
+          'Include the error text, the relevant code, and what you were doing when it happened. Claude almost always identifies the cause and gives you the exact fix to paste back in.'
+        ],
+        steps:[
+          { title:'Copy the full error', desc:'Click in the Console, Cmd+A, Cmd+C (or just triple-click the error line).' },
+          { title:'Open a new Claude message', desc:'Paste the error and add a sentence of context: "This happens when I click the Submit button."' },
+          { title:'Apply Claude\'s fix', desc:'If Claude gives you a code snippet, paste it exactly where it tells you to.' },
+          { title:'Reload and retest', desc:'Hard reload with Cmd+Shift+R to clear any cached scripts.' }
+        ]
+      }
+    ]},
+    { title:'Network Tab', pages:[
+      { type:'info', heading:'Watching your API requests in real time',
+        body:[
+          'The Network tab records every request your page makes — HTML files, images, fonts, and API calls. Click any row to see the request URL, headers, and the full response body.',
+          'This is invaluable when you\'ve asked Claude to connect an API: you can see exactly what\'s being sent and what\'s coming back, without any extra logging code.'
+        ],
+        tip:{ label:'How to use it', body:'Open DevTools → Network tab → reload the page. Every request appears. Filter by "Fetch/XHR" to see only API calls.' }
+      },
+      { type:'info', heading:'Reading a network request',
+        body:[
+          'Click any request in the Network tab and you\'ll see four sub-panels. <strong>Headers</strong> shows the URL, method (GET/POST), and response status (200 = OK, 404 = not found, 500 = server error). <strong>Preview</strong> shows the JSON response formatted beautifully. <strong>Response</strong> shows the raw text.',
+          'Status codes tell you the story instantly: 200 means it worked, 401 means you\'re not authenticated (wrong or missing API key), 429 means you\'ve hit the rate limit.'
+        ],
+        keyPoint:{ body:'401 error = bad API key. 404 = wrong URL. 500 = server-side bug. Each one tells Claude exactly what category of fix is needed.' }
+      },
+      { type:'info', heading:'Full debugging workflow',
+        body:['When something isn\'t working on your Claude-built project, run through this in order:'],
+        steps:[
+          { title:'Open Console (Cmd+Option+J)', desc:'Look for red errors. If there\'s one, paste it to Claude.' },
+          { title:'Open Network tab', desc:'Reload the page. Check if any requests show red status codes (400s or 500s).' },
+          { title:'Click the failing request', desc:'Check the Response tab — often the API gives a descriptive error message in the JSON.' },
+          { title:'Describe everything to Claude', desc:'"The API call to [URL] returns 401. The response body says: [paste]."' }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'python', icon:'🐍', title:'Python Basics', badge:'Nice to Know', badgeClass:'badge-gray', iconBg:'bg-gray',
+  tagline:'Unlocks backend work — data scripts, Flask apps, automations. Worth learning after a few front-end projects.',
+  lessons:[
+    { title:'Python Syntax', pages:[
+      { type:'info', heading:'Python is readable by design',
+        body:[
+          'Python was designed to read almost like English. No curly braces — indentation defines code blocks. No semicolons. Variables are created by just using them (no <code>const</code> or <code>let</code>).',
+          'This makes Python Claude\'s go-to for backend scripts, data processing, and APIs. You\'ll see it any time a project needs to run on a server, process a file, or automate a task.'
+        ],
+        keyPoint:{ body:'In Python, indentation isn\'t just style — it\'s syntax. A misaligned line is a bug. Claude handles this correctly; just don\'t reformat Python code manually.' }
+      },
+      { type:'terminal', heading:'Python variables and <span class="mono">print()</span>',
+        intro:'Run Python by typing <code>python3</code> in your terminal. Or put code in a <code>.py</code> file and run <code>python3 script.py</code>.',
+        lines:[
+          { prompt:true, text:'python3' },
+          { prompt:false, text:'Python 3.12.0' },
+          { prompt:false, text:'>>> _' },
+          { prompt:false, text:'' },
+          { prompt:false, text:'>>> name = "Alex"' },
+          { prompt:false, text:'>>> score = 42' },
+          { prompt:false, text:'>>> print(f"Hello {name}, your score is {score}")' },
+          { prompt:false, text:'Hello Alex, your score is 42' }
+        ],
+        explain:'The <code>f"..."</code> is an f-string — Python\'s way of embedding variables inside strings. Claude uses these constantly.'
+      },
+      { type:'code', heading:'Functions in Python',
+        lang:'Python',
+        code:`<span class="kw">def</span> <span class="fn">greet</span>(name):
+    <span class="kw">return</span> <span class="str">f"Hello, {name}!"</span>
+
+<span class="cm"># Call it</span>
+<span class="fn">print</span>(<span class="fn">greet</span>(<span class="str">"Alex"</span>))    <span class="cm"># Hello, Alex!</span>
+
+<span class="cm"># Default arguments</span>
+<span class="kw">def</span> <span class="fn">power</span>(base, exp=<span class="num">2</span>):
+    <span class="kw">return</span> base ** exp
+
+<span class="fn">power</span>(<span class="num">3</span>)     <span class="cm"># 9  (exp defaults to 2)</span>
+<span class="fn">power</span>(<span class="num">3</span>, <span class="num">3</span>)  <span class="cm"># 27</span>`,
+        explain:'Python uses <code>def</code> instead of JavaScript\'s <code>function</code>. Indentation (4 spaces) defines what\'s inside the function. Default arguments make functions flexible.'
+      }
+    ]},
+    { title:'Lists & Loops', pages:[
+      { type:'code', heading:'Lists — Python\'s version of arrays',
+        lang:'Python',
+        code:`projects = [<span class="str">"Portfolio"</span>, <span class="str">"Todo app"</span>, <span class="str">"Blog"</span>]
+
+<span class="cm"># Access by index</span>
+projects[<span class="num">0</span>]       <span class="cm"># "Portfolio"</span>
+projects[-<span class="num">1</span>]      <span class="cm"># "Blog"  (last item!)</span>
+
+<span class="cm"># Add and remove</span>
+projects.<span class="fn">append</span>(<span class="str">"API"</span>)    <span class="cm"># add to end</span>
+projects.<span class="fn">pop</span>()            <span class="cm"># remove last</span>
+
+<span class="cm"># Slicing</span>
+projects[<span class="num">0</span>:<span class="num">2</span>]   <span class="cm"># ["Portfolio", "Todo app"]</span>`,
+        explain:'Python lists work like JavaScript arrays. The big difference: <code>projects[-1]</code> gets the last item — a Python shortcut that Claude uses frequently.'
+      },
+      { type:'code', heading:'for loops — process every item',
+        lang:'Python',
+        code:`projects = [<span class="str">"Portfolio"</span>, <span class="str">"Todo app"</span>, <span class="str">"Blog"</span>]
+
+<span class="cm"># Loop through every item</span>
+<span class="kw">for</span> project <span class="kw">in</span> projects:
+    <span class="fn">print</span>(project)
+
+<span class="cm"># Loop with index</span>
+<span class="kw">for</span> i, project <span class="kw">in</span> <span class="fn">enumerate</span>(projects):
+    <span class="fn">print</span>(<span class="str">f"{i+1}. {project}"</span>)
+
+<span class="cm"># List comprehension (compact loop)</span>
+lengths = [<span class="fn">len</span>(p) <span class="kw">for</span> p <span class="kw">in</span> projects]`,
+        explain:'List comprehensions are a Python specialty: <code>[expression for item in list]</code> builds a new list in one line. Claude uses them everywhere — they\'re elegant once you recognize the pattern.'
+      },
+      { type:'quiz', heading:'Quick Check', questions:[
+        { q:'items = ["a","b","c"]. What does items[-1] return?', options:['"a"','Error','"c"','"b"'], correct:2, fb:'Python\'s negative indexing counts from the end. -1 is the last item, -2 is second to last.' },
+        { q:'def add(x, y=10): return x+y. What does add(5) return?', options:['5','10','15','Error'], correct:2, fb:'y defaults to 10 when not provided. 5 + 10 = 15.' }
+      ]}
+    ]},
+    { title:'Flask in 60 Seconds', pages:[
+      { type:'info', heading:'What is Flask?',
+        body:[
+          'Flask is a minimal Python web framework. It lets you create a server that listens for HTTP requests and sends back responses. If you\'ve seen Claude build a "backend API" in Python, it\'s almost always Flask.',
+          'You\'d use Flask when your project needs a server: storing data, calling the Anthropic API without exposing your key on the front end, processing uploads, or serving dynamic content.'
+        ],
+        tip:{ label:'Install Flask', body:'In your terminal: <code>pip3 install flask</code>. Then Claude can build you a complete server.' }
+      },
+      { type:'code', heading:'A minimal Flask server',
+        lang:'Python',
+        code:`<span class="kw">from</span> flask <span class="kw">import</span> Flask, jsonify
+
+app = <span class="fn">Flask</span>(__name__)
+
+<span class="cm"># Define a route</span>
+@app.<span class="fn">route</span>(<span class="str">"/api/hello"</span>)
+<span class="kw">def</span> <span class="fn">hello</span>():
+    <span class="kw">return</span> <span class="fn">jsonify</span>({ <span class="str">"message"</span>: <span class="str">"Hello from Python!"</span> })
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    app.<span class="fn">run</span>(debug=<span class="kw">True</span>, port=<span class="num">5000</span>)`,
+        explain:'Run this with <code>python3 server.py</code> and visit <code>http://localhost:5000/api/hello</code>. You\'ll see the JSON response. Your JavaScript front end can <code>fetch()</code> this endpoint.'
+      },
+      { type:'info', heading:'Routes explained',
+        body:[
+          'The <code>@app.route("/path")</code> decorator connects a URL to a Python function. When a browser (or your JavaScript) makes a request to that URL, Flask runs the function and returns whatever it gives back.',
+          'Claude can add as many routes as you need — one per feature. A route for getting data, one for saving data, one for processing an upload. Each function is independent and easy to understand.'
+        ],
+        keyPoint:{ body:'Tell Claude: "Add a Flask route at /api/submit that accepts a POST request with a JSON body and saves it." That\'s a complete, buildable spec.' }
+      }
+    ]}
+  ]
+},
+{
+  id:'react', icon:'⚛️', title:'React Fundamentals', badge:'Nice to Know', badgeClass:'badge-gray', iconBg:'bg-gray',
+  tagline:'Components, props, state — helpful once you\'re building apps with real interactivity.',
+  lessons:[
+    { title:'Components', pages:[
+      { type:'info', heading:'Everything in React is a component',
+        body:[
+          'React breaks UIs into reusable pieces called <strong>components</strong>. A component is a JavaScript function that returns HTML-like JSX. A button, a card, a nav bar, an entire page — all components.',
+          'The power: define a <code>Card</code> component once, reuse it 50 times with different data. Change the component once, every instance updates. This is why React dominates complex web apps.'
+        ],
+        keyPoint:{ body:'If you find yourself copy-pasting HTML blocks more than twice, that\'s a React component waiting to be born.' }
+      },
+      { type:'code', heading:'JSX — HTML inside JavaScript',
+        lang:'JSX',
+        code:`<span class="cm">// JSX looks like HTML but it's JavaScript</span>
+<span class="kw">const</span> heading = &lt;<span class="tag">h1</span>&gt;Hello World&lt;/<span class="tag">h1</span>&gt;;
+
+<span class="cm">// Embed variables with { }</span>
+<span class="kw">const</span> name = <span class="str">"Alex"</span>;
+<span class="kw">const</span> el = &lt;<span class="tag">h1</span>&gt;Hello, {name}!&lt;/<span class="tag">h1</span>&gt;;
+
+<span class="cm">// className instead of class (it's JS)</span>
+<span class="kw">const</span> card = &lt;<span class="tag">div</span> <span class="attr">className</span>=<span class="str">"card"</span>&gt;Content&lt;/<span class="tag">div</span>&gt;;`,
+        explain:'JSX is the syntax React uses to mix HTML and JavaScript. Key differences from real HTML: use <code>className</code> (not <code>class</code>), wrap expressions in <code>{ }</code>, and close all tags (including <code>&lt;img /&gt;</code>).'
+      },
+      { type:'code', heading:'Your first component',
+        lang:'JSX',
+        code:`<span class="cm">// A component is just a function that returns JSX</span>
+<span class="kw">function</span> <span class="fn">ProjectCard</span>({ title, description }) {
+  <span class="kw">return</span> (
+    &lt;<span class="tag">div</span> <span class="attr">className</span>=<span class="str">"card"</span>&gt;
+      &lt;<span class="tag">h2</span>&gt;{title}&lt;/<span class="tag">h2</span>&gt;
+      &lt;<span class="tag">p</span>&gt;{description}&lt;/<span class="tag">p</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  );
+}
+
+<span class="cm">// Use it like an HTML tag</span>
+&lt;<span class="fn">ProjectCard</span>
+  title=<span class="str">"Portfolio"</span>
+  description=<span class="str">"My design work"</span>
+/&gt;`,
+        explain:'The <code>{ title, description }</code> in the function signature destructures <strong>props</strong> — data passed into the component from outside. Props are how you make a component reusable with different content.'
+      }
+    ]},
+    { title:'Props & State', pages:[
+      { type:'code', heading:'Props — data flows in from outside',
+        lang:'JSX',
+        code:`<span class="cm">// Parent passes data to child via props</span>
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    &lt;<span class="tag">div</span>&gt;
+      &lt;<span class="fn">ProjectCard</span> title=<span class="str">"Portfolio"</span> stars=<span class="num">{42}</span> /&gt;
+      &lt;<span class="fn">ProjectCard</span> title=<span class="str">"Todo App"</span> stars=<span class="num">{17}</span> /&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  );
+}
+
+<span class="cm">// Child receives props as function argument</span>
+<span class="kw">function</span> <span class="fn">ProjectCard</span>({ title, stars }) {
+  <span class="kw">return</span> &lt;<span class="tag">div</span>&gt;{title} ⭐ {stars}&lt;/<span class="tag">div</span>&gt;;
+}`,
+        explain:'Props are read-only — a component can\'t modify its own props. To change data, you need state. Think of props as function arguments: pass them in, use them, but don\'t mutate them.'
+      },
+      { type:'code', heading:'State — data that changes over time',
+        lang:'JSX',
+        code:`<span class="kw">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">function</span> <span class="fn">Counter</span>() {
+  <span class="cm">// [value, setter] = useState(initialValue)</span>
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="num">0</span>);
+
+  <span class="kw">return</span> (
+    &lt;<span class="tag">div</span>&gt;
+      &lt;<span class="tag">p</span>&gt;Count: {count}&lt;/<span class="tag">p</span>&gt;
+      &lt;<span class="tag">button</span> <span class="attr">onClick</span>={() => <span class="fn">setCount</span>(count + <span class="num">1</span>)}&gt;
+        +1
+      &lt;/<span class="tag">button</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  );
+}`,
+        explain:'<code>useState</code> gives a component memory. When <code>setCount</code> is called, React re-renders the component with the new value. This is the core of React interactivity.'
+      },
+      { type:'quiz', heading:'Quick Check', questions:[
+        { q:'In React, what term describes data passed from a parent component to a child?', options:['state','context','props','hooks'], correct:2, fb:'Props (short for properties) are how parent components pass data to children. Read-only in the child.' },
+        { q:'Which hook gives a component its own internal data that can change?', options:['useEffect','useState','useRef','useContext'], correct:1, fb:'useState returns a value and a setter. Calling the setter triggers a re-render with the new value.' }
+      ]}
+    ]},
+    { title:'When to Use React', pages:[
+      { type:'info', heading:'Simple site? Don\'t reach for React.',
+        body:[
+          'React adds build tooling, a learning curve, and complexity. For a portfolio site, a landing page, or a simple tool — vanilla HTML, CSS, and JavaScript is faster to build, easier to deploy, and easier for Claude to maintain.',
+          'The rule: if your page mostly shows content and has minimal interactivity, use vanilla HTML. Claude is excellent at building clean, polished vanilla sites.'
+        ],
+        tip:{ label:'Vanilla HTML is underrated', body:'Every project in this workspace that isn\'t the PGA tracker is built in vanilla HTML. They\'re fast, simple, and work perfectly.' }
+      },
+      { type:'info', heading:'When React earns its complexity',
+        body:[
+          'React shines when a page has <strong>many interactive pieces that share state</strong>. A dashboard where filtering a dropdown updates three charts. A kanban board where dragging a card changes counts in the sidebar. A real-time chat where new messages update multiple components.',
+          'If you find yourself passing data between unrelated parts of a vanilla JS page, or if the <code>document.getElementById</code> calls are multiplying out of control, that\'s a signal React would help.'
+        ],
+        keyPoint:{ body:'The question is: "Do multiple parts of my page need to react to the same changing data?" If yes, React. If no, vanilla.' }
+      },
+      { type:'info', heading:'Giving Claude the right context',
+        body:[
+          'When you start a React project with Claude, say so explicitly: "Build this as a React app using Vite. Use functional components and hooks. Keep all state in the relevant components unless it needs to be shared."',
+          'And when you don\'t want React: "Build this as a single vanilla HTML file with inline CSS and JavaScript." That four-word clarification saves Claude from over-engineering a landing page.'
+        ],
+        steps:[
+          { title:'Small project (portfolio, tool)', desc:'Tell Claude: "single vanilla HTML file."' },
+          { title:'Complex app (dashboard, multi-view)', desc:'Tell Claude: "React with Vite, functional components."' },
+          { title:'Existing React codebase', desc:'Tell Claude the component structure: "This is a React app. State lives in App.jsx."' }
+        ]
+      }
+    ]}
+  ]
+}
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'ccl_journey_v1';
+
+function getProgress() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
+}
+
+function saveProgress(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+
+function getLessonsDone(skillId) {
+  const p = getProgress();
+  return p[skillId]?.done || [false, false, false];
+}
+
+function markLessonDone(skillId, lessonIdx) {
+  const p = getProgress();
+  if (!p[skillId]) p[skillId] = { done: [false, false, false] };
+  p[skillId].done[lessonIdx] = true;
+  saveProgress(p);
+}
+
+function totalLessonsDone() {
+  const p = getProgress();
+  return SKILLS.reduce((sum, sk) => sum + (p[sk.id]?.done || []).filter(Boolean).length, 0);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NAVIGATION STATE
+// ═══════════════════════════════════════════════════════════════════
+let curSkill = 0, curLesson = 0, curPage = 0;
+let quizState = { qIdx: 0, answered: false, canContinue: false };
+let nextBlocked = false;
+
+// ═══════════════════════════════════════════════════════════════════
+// ROADMAP RENDER
+// ═══════════════════════════════════════════════════════════════════
+function renderRoadmap() {
+  const done = totalLessonsDone();
+  document.getElementById('nav-progress').textContent =
+    `${done} of ${SKILLS.length * 3} lessons done`;
+
+  const container = document.getElementById('skill-nodes');
+  container.innerHTML = SKILLS.map((sk, i) => {
+    const ld = getLessonsDone(sk.id);
+    const doneCount = ld.filter(Boolean).length;
+    const allDone = doneCount === 3;
+    const anyDone = doneCount > 0;
+    const stateClass = allDone ? 's-complete' : anyDone ? 's-active' : '';
+    const dots = ld.map((d, di) =>
+      `<div class="ldot${d ? ' done' : di === doneCount ? ' partial' : ''}"></div>`).join('');
+    const btnClass = allDone ? 'btn-review' : anyDone ? 'btn-continue' : 'btn-start';
+    const btnText = allDone ? 'Review ✓' : anyDone ? `Continue — Lesson ${doneCount+1}` : 'Start →';
+    return `<div class="skill-row">
+      <div class="skill-card ${stateClass}">
+        <div class="skill-top">
+          <div class="skill-icon ${sk.iconBg}">${sk.icon}</div>
+          <div class="skill-meta">
+            <div class="skill-title">${sk.title}</div>
+            <span class="skill-badge ${sk.badgeClass}">${sk.badge}</span>
+          </div>
+        </div>
+        <p class="skill-tagline">${sk.tagline}</p>
+        <div class="lesson-dots">${dots}</div>
+        <button class="skill-btn ${btnClass}" onclick="openSkill(${i})">${btnText}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LESSON VIEW
+// ═══════════════════════════════════════════════════════════════════
+function openSkill(skillIdx) {
+  curSkill = skillIdx;
+  const ld = getLessonsDone(SKILLS[skillIdx].id);
+  curLesson = ld.indexOf(false);
+  if (curLesson === -1) curLesson = 0;
+  curPage = 0;
+  showLessonView();
+}
+
+function showLessonView() {
+  document.getElementById('roadmap-view').style.display = 'none';
+  const lv = document.getElementById('lesson-view');
+  lv.classList.add('open');
+  renderLessonView();
+  window.scrollTo(0, 0);
+}
+
+function backToRoadmap() {
+  document.getElementById('lesson-view').classList.remove('open');
+  document.getElementById('roadmap-view').style.display = 'block';
+  renderRoadmap();
+  window.scrollTo(0, 0);
+}
+
+function switchLesson(idx) {
+  curLesson = idx;
+  curPage = 0;
+  renderLessonView();
+}
+
+function renderLessonView() {
+  const skill = SKILLS[curSkill];
+  const lesson = skill.lessons[curLesson];
+  const page = lesson.pages[curPage];
+  const totalPages = lesson.pages.length;
+  const ld = getLessonsDone(skill.id);
+
+  // Header
+  document.getElementById('ls-skill-lbl').textContent = skill.title;
+  document.getElementById('ls-title-lbl').textContent = lesson.title;
+
+  // Page dots
+  const pgDots = document.getElementById('pg-dots');
+  pgDots.innerHTML = Array.from({length: totalPages}, (_, i) =>
+    `<div class="pgdot${i < curPage ? ' done' : i === curPage ? ' cur' : ''}"></div>`
+  ).join('');
+
+  // Lesson picker bar
+  const bar = document.getElementById('lesson-picker-bar');
+  bar.innerHTML = skill.lessons.map((l, i) =>
+    `<button class="lpick-btn${i === curLesson ? ' active' : ''}${ld[i] ? ' ldone' : ''}" onclick="switchLesson(${i})">
+      ${ld[i] ? '✓ ' : ''}Lesson ${i+1}
+    </button>`
+  ).join('');
+
+  // Footer meta
+  document.getElementById('foot-meta').textContent =
+    `Lesson ${curLesson + 1} of ${skill.lessons.length}  ·  Page ${curPage + 1} of ${totalPages}`;
+
+  // Prev button
+  const prevBtn = document.getElementById('btn-prev');
+  prevBtn.disabled = curLesson === 0 && curPage === 0;
+
+  // Next button
+  const nextBtn = document.getElementById('btn-next');
+  const isLastPage = curPage === totalPages - 1;
+  const isLastLesson = curLesson === skill.lessons.length - 1;
+  nextBlocked = page.type === 'quiz';
+  nextBtn.disabled = nextBlocked;
+  if (isLastPage && isLastLesson) {
+    nextBtn.textContent = 'Complete Skill ✓';
+    nextBtn.className = 'btn-next finish';
+  } else if (isLastPage) {
+    nextBtn.textContent = 'Next Lesson →';
+    nextBtn.className = 'btn-next';
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.className = 'btn-next';
+  }
+
+  // Content
+  const content = document.getElementById('lesson-content');
+  content.innerHTML = renderPage(page);
+  content.classList.remove('animate-in');
+  void content.offsetWidth;
+  content.classList.add('animate-in');
+
+  // Post-render
+  if (page.type === 'terminal') {
+    const termId = `term-${curSkill}-${curLesson}-${curPage}`;
+    animateTerminal(termId, page.lines);
+  }
+  if (page.type === 'quiz') {
+    setupQuiz(page.questions);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGE RENDER
+// ═══════════════════════════════════════════════════════════════════
+function renderPage(page) {
+  switch (page.type) {
+    case 'info': return renderInfo(page);
+    case 'terminal': return renderTerminal(page);
+    case 'code': return renderCode(page);
+    case 'quiz': return renderQuiz(page);
+    default: return '<p>Unknown page type.</p>';
+  }
+}
+
+function renderInfo(page) {
+  let html = `<h2 class="pg-heading">${page.heading}</h2>`;
+  if (page.body) {
+    page.body.forEach(p => { html += `<p class="pg-body">${p}</p>`; });
+  }
+  if (page.tip) {
+    html += `<div class="tip-box"><div class="tip-lbl">${page.tip.label}</div><div class="tip-body">${page.tip.body}</div></div>`;
+  }
+  if (page.keyPoint) {
+    html += `<div class="key-point"><div class="kp-lbl">Key Point</div><div class="kp-body">${page.keyPoint.body}</div></div>`;
+  }
+  if (page.breakdown) {
+    html += `<div class="bdlist">${page.breakdown.map(b =>
+      `<div class="bditem"><span class="bdcmd">${b.cmd}</span><span class="bddesc">${b.desc}</span></div>`
+    ).join('')}</div>`;
+  }
+  if (page.steps) {
+    html += `<div class="steps">${page.steps.map((s, i) =>
+      `<div class="step"><div class="step-n">${i+1}</div><div class="step-txt"><div class="step-title">${s.title}</div><div class="step-desc">${s.desc}</div></div></div>`
+    ).join('')}</div>`;
+  }
+  return html;
+}
+
+function renderTerminal(page) {
+  const termId = `term-${curSkill}-${curLesson}-${curPage}`;
+  let html = `<h2 class="pg-heading">${page.heading}</h2>`;
+  if (page.intro) html += `<p class="term-intro">${page.intro}</p>`;
+  html += `<div class="term-window">
+    <div class="term-bar">
+      <span class="td td-r"></span><span class="td td-y"></span><span class="td td-g"></span>
+      <span class="term-title">Terminal</span>
+    </div>
+    <div class="term-body" id="${termId}"><span class="t-cursor"></span></div>
+  </div>`;
+  if (page.explain) {
+    html += `<div class="term-explain"><p>${page.explain}</p></div>`;
+  }
+  return html;
+}
+
+function renderCode(page) {
+  let html = `<h2 class="pg-heading">${page.heading}</h2>`;
+  html += `<div class="code-block"><div class="code-hdr">${page.lang}</div><pre>${page.code}</pre></div>`;
+  if (page.explain) html += `<p class="pg-body" style="margin-top:8px">${page.explain}</p>`;
+  return html;
+}
+
+function renderQuiz(page) {
+  quizState = { qIdx: 0, answered: false, canContinue: false };
+  const q = page.questions[0];
+  return `<h2 class="pg-heading">${page.heading}</h2>
+    <div class="quiz-prog" id="quiz-prog">Question 1 of ${page.questions.length}</div>
+    <div class="quiz-q" id="quiz-q">${q.q}</div>
+    <div class="quiz-opts" id="quiz-opts">
+      ${q.options.map((o, i) => `<button class="qopt" onclick="answerQuiz(${i})">${o}</button>`).join('')}
+    </div>
+    <div class="quiz-fb" id="quiz-fb"></div>
+    <button class="quiz-cont" id="quiz-cont" onclick="nextQuizQuestion()">Next question →</button>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// QUIZ LOGIC
+// ═══════════════════════════════════════════════════════════════════
+function setupQuiz(questions) {
+  quizState = { qIdx: 0, answered: false, questions };
+}
+
+function answerQuiz(optionIdx) {
+  if (quizState.answered) return;
+  const questions = getCurrentPage().questions;
+  const q = questions[quizState.qIdx];
+  const opts = document.querySelectorAll('.qopt');
+  const fb = document.getElementById('quiz-fb');
+  const cont = document.getElementById('quiz-cont');
+
+  quizState.answered = true;
+
+  opts.forEach((opt, i) => {
+    if (i === q.correct) opt.classList.add('correct');
+    else if (i === optionIdx && optionIdx !== q.correct) opt.classList.add('wrong');
+    else opt.classList.add('dim');
+  });
+
+  const isCorrect = optionIdx === q.correct;
+  fb.className = `quiz-fb show ${isCorrect ? 'ok' : 'no'}`;
+  fb.textContent = (isCorrect ? '✓ ' : '✗ ') + q.fb;
+
+  const isLast = quizState.qIdx === questions.length - 1;
+  if (isLast) {
+    // Unlock Next
+    document.getElementById('btn-next').disabled = false;
+    nextBlocked = false;
+    cont.style.display = 'none';
+  } else {
+    cont.textContent = 'Next question →';
+    cont.className = 'quiz-cont show';
+  }
+}
+
+function nextQuizQuestion() {
+  const questions = getCurrentPage().questions;
+  quizState.qIdx++;
+  quizState.answered = false;
+  const q = questions[quizState.qIdx];
+  document.getElementById('quiz-prog').textContent = `Question ${quizState.qIdx + 1} of ${questions.length}`;
+  document.getElementById('quiz-q').textContent = q.q;
+  document.getElementById('quiz-opts').innerHTML = q.options.map((o, i) =>
+    `<button class="qopt" onclick="answerQuiz(${i})">${o}</button>`).join('');
+  document.getElementById('quiz-fb').className = 'quiz-fb';
+  document.getElementById('quiz-cont').className = 'quiz-cont';
+}
+
+function getCurrentPage() {
+  return SKILLS[curSkill].lessons[curLesson].pages[curPage];
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════════
+function nextPage() {
+  if (nextBlocked) return;
+  const skill = SKILLS[curSkill];
+  const lesson = skill.lessons[curLesson];
+  const totalPages = lesson.pages.length;
+  const isLastPage = curPage === totalPages - 1;
+  const isLastLesson = curLesson === skill.lessons.length - 1;
+
+  if (isLastPage) {
+    markLessonDone(skill.id, curLesson);
+    if (isLastLesson) {
+      backToRoadmap();
+    } else {
+      curLesson++;
+      curPage = 0;
+      renderLessonView();
+    }
+  } else {
+    curPage++;
+    renderLessonView();
+  }
+}
+
+function prevPage() {
+  if (curPage > 0) {
+    curPage--;
+    renderLessonView();
+  } else if (curLesson > 0) {
+    curLesson--;
+    const lesson = SKILLS[curSkill].lessons[curLesson];
+    curPage = lesson.pages.length - 1;
+    renderLessonView();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TERMINAL ANIMATION
+// ═══════════════════════════════════════════════════════════════════
+function animateTerminal(id, lines) {
+  const container = document.getElementById(id);
+  if (!container) return;
+  container.innerHTML = '';
+  let i = 0;
+
+  function next() {
+    if (i >= lines.length) return;
+    const line = lines[i++];
+
+    if (line.prompt) {
+      const span = document.createElement('span');
+      span.className = 'tl';
+      const prompt = document.createElement('span');
+      prompt.className = 't-prompt';
+      prompt.textContent = '$ ';
+      const cmd = document.createElement('span');
+      cmd.className = 't-cmd';
+      span.appendChild(prompt);
+      span.appendChild(cmd);
+      container.appendChild(span);
+
+      let c = 0;
+      const text = line.text;
+      function typeChar() {
+        if (c < text.length) {
+          cmd.textContent += text[c++];
+          setTimeout(typeChar, 52);
+        } else {
+          setTimeout(next, 320);
+        }
+      }
+      typeChar();
+    } else {
+      const span = document.createElement('span');
+      span.className = 'tl t-out';
+      span.textContent = line.text;
+      container.appendChild(span);
+      setTimeout(next, line.text === '' ? 60 : 90);
+    }
+  }
+
+  setTimeout(next, 200);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+renderRoadmap();
+</script>
+</body>
+</html>
