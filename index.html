@@ -1129,139 +1129,191 @@ app = <span class="fn">Flask</span>(__name__)
 const PLAYBOOK = [
 {
   id:'pb-setup', icon:'🗺️', title:'Claude Code Playbook Setup', badge:'Game Changer', badgeClass:'badge-gold', iconBg:'bg-gold',
-  tagline:'Everything I\'ve actually done — install, accounts, deploy skills, and the projects I built to learn. Follow it top to bottom.',
+  tagline:'Download the app, set up two accounts, and build real projects. No coding experience needed — follow it top to bottom.',
   lessons:[
     { title:'Set Up Your Machine', pages:[
       { type:'info', heading:'Your Claude Code starter kit',
         body:[
-          'This playbook is the exact path I took: download Claude Code, set up a few accounts, then build real things. Every step here is something you can do in an afternoon.',
-          'The goal — by the end you can describe an idea to Claude and have a live URL to share within minutes, not days.'
-        ],
-        keyPoint:{ body:'Setup once, ship forever. The first hour of pain saves you weeks down the line.' }
-      },
-      { type:'terminal', heading:'Install <span class="mono">claude</span>',
-        intro:'Claude Code runs in your terminal. One npm command installs it globally so you can launch it from any folder.',
-        lines:[
-          { prompt:true, text:'npm install -g @anthropic-ai/claude-code' },
-          { prompt:false, text:'added 142 packages in 8s' },
-          { prompt:true, text:'claude --version' },
-          { prompt:false, text:'2.0.0' }
-        ],
-        explain:'Once installed, run <strong>claude</strong> from inside any project folder to start a session. The first launch will ask for your Anthropic API key — have it ready from console.anthropic.com.'
-      },
-      { type:'terminal', heading:'Mac essentials: <span class="mono">brew</span>, <span class="mono">node</span>, <span class="mono">gh</span>',
-        intro:'Three tools you\'ll touch constantly — Homebrew (package manager), Node (powers npm and every React project), and the GitHub CLI (lets Claude push code without leaving the terminal).',
-        lines:[
-          { prompt:true, text:'/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' },
-          { prompt:false, text:'Homebrew installed.' },
-          { prompt:true, text:'brew install node gh' },
-          { prompt:false, text:'node 22.x and gh 2.x installed.' },
-          { prompt:true, text:'gh auth login' },
-          { prompt:false, text:'✓ Logged in as your-username' }
-        ],
-        explain:'Brew gives you <strong>node</strong> (every Vite/React project needs it) and <strong>gh</strong> (lets Claude push to GitHub for you). Authenticate <strong>gh</strong> once — Claude reuses that login forever after.'
-      },
-      { type:'info', heading:'Where your projects live',
-        body:[
-          'A clean folder structure means Claude always knows where to put new code. I keep a Desktop / Projects / Working setup so Claude works inside one project at a time without ever touching the others.'
+          'This playbook is the exact path to get Claude Code working on your Mac — download the app, create a couple of accounts, and you\'ll be building real things by end of day.',
+          'You don\'t need to know how to code. You just need to follow these steps in order and paste commands exactly as shown. If anything breaks, there\'s a prompt you can give Claude to fix it.'
         ],
         steps:[
-          { title:'~/Desktop/Projects', desc:'Top-level home for everything code-related.' },
-          { title:'~/Desktop/Projects/Working', desc:'One folder per active project. Start Claude from inside the specific subfolder you want it scoped to.' },
-          { title:'~/Desktop/Projects/Archive', desc:'Old experiments. Keeps Working tidy so you can see what\'s actually live.' }
+          { title:'Step 1 — Download Claude Code', desc:'Get the desktop app at <strong>claude.ai/code</strong>. This is an app like any other on your Mac — no complex setup yet.' },
+          { title:'Step 2 — Install three Mac tools', desc:'Homebrew, Node, and the GitHub CLI. We\'ll open your Terminal app (explained on the next page) and paste three commands.' },
+          { title:'Step 3 — Create two free accounts', desc:'GitHub stores your code. Vercel makes it live on the internet. Both are free and take under 5 minutes each.' }
         ],
-        tip:{ label:'Pro tip', body:'Always <code>cd</code> into the specific project folder before running <code>claude</code>. That scopes what Claude can read and edit, preventing accidental cross-project changes.' }
+        keyPoint:{ body:'Do this setup once. After that, you just describe what you want to build — Claude handles the rest.' }
+      },
+      { type:'info', heading:'Download the Claude Code desktop app',
+        body:[
+          'Claude Code has a Mac desktop app. It has a built-in chat and a built-in terminal — you don\'t need to juggle multiple programs. Think of it like having a very smart coding assistant sitting next to you.',
+          'You\'ll need an Anthropic account (the company that makes Claude). If you\'ve ever used Claude.ai to chat, you already have one — use that login.'
+        ],
+        steps:[
+          { title:'1. Go to the download page', desc:'Open Safari or Chrome and go to <strong>claude.ai/code</strong>. Click the "Download for Mac" button.' },
+          { title:'2. Install the app', desc:'Open the downloaded .dmg file from your Downloads folder. Drag the Claude Code icon into the Applications folder that appears. Then open it from Applications.' },
+          { title:'3. Sign in', desc:'When the app opens, click "Sign in" and use your Anthropic account (the same one from claude.ai). If you don\'t have one yet, click "Sign up" — it\'s free.' },
+          { title:'4. You\'re in', desc:'You\'ll see a chat interface. Type a message and Claude replies. The terminal built into the app is how Claude runs commands — you\'ll see it in action shortly.' }
+        ],
+        tip:{ label:'No account yet?', body:'Go to <strong>claude.ai</strong> in your browser → click "Sign up" → enter your email and create a password → verify your email. Then come back and download the app.' }
+      },
+      { type:'terminal', heading:'Mac essentials: <span class="mono">brew</span>, <span class="mono">node</span>, <span class="mono">gh</span>',
+        intro:'Three tools Claude needs to build and deploy projects for you. You\'ll run these in your Mac\'s <strong>Terminal</strong> app. <strong>What is Terminal?</strong> It\'s a text-based way to control your Mac — like sending typed instructions instead of clicking buttons. <strong>How to open it:</strong> Press <strong>Command (⌘) + Space</strong>, type <strong>Terminal</strong>, press <strong>Enter</strong>. A window opens with a blinking cursor. Copy each command below (click it, then ⌘+C), paste it into Terminal (⌘+V), and press <strong>Enter</strong>. When it asks for your password, type it and press Enter — the cursor won\'t move while you type, that\'s normal.',
+        lines:[
+          { prompt:true, text:'/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' },
+          { prompt:false, text:'==> Installation successful! Run: brew doctor' },
+          { prompt:true, text:'brew install node gh' },
+          { prompt:false, text:'==> node 22.x ... gh 2.x ... installed.' },
+          { prompt:true, text:'node --version' },
+          { prompt:false, text:'v22.14.0' },
+          { prompt:true, text:'gh auth login' },
+          { prompt:false, text:'? What account do you want to log into? GitHub.com' },
+          { prompt:false, text:'? How would you like to authenticate? Login with a web browser' },
+          { prompt:false, text:'✓ Logged in as your-github-username' }
+        ],
+        explain:'<strong>What success looks like:</strong> Homebrew prints "Installation successful." Node prints a version like v22.x.x. The <code>gh auth login</code> step opens your browser — pick GitHub.com → HTTPS → Login with a web browser → click Authorize in the browser. Back in Terminal you\'ll see "✓ Logged in as your-username." <strong>If brew says "command not found" after install:</strong> close Terminal, open a new one, then run <code>brew install node gh</code> again. <strong>Can\'t figure it out?</strong> Paste this into Claude Code: "Help me install Homebrew, Node, and the GitHub CLI on my Mac. Walk me through it step by step."'
+      },
+      { type:'info', heading:'Create your project folders',
+        body:[
+          'A clean folder structure means Claude always works on one project at a time without accidentally touching others. Create three folders — you can do it yourself or just ask Claude to do it for you right now.'
+        ],
+        breakdown:[
+          { cmd:'Ask Claude to do it:', desc:'"Create this folder structure on my Mac: ~/Desktop/Projects/Working and ~/Desktop/Projects/Archive. Then show me the terminal command to navigate into Working."' }
+        ],
+        steps:[
+          { title:'~/Desktop/Projects', desc:'Top-level home for everything code-related. All projects live under here.' },
+          { title:'~/Desktop/Projects/Working', desc:'One sub-folder per active project. When you start Claude, always navigate to your specific project folder first.' },
+          { title:'~/Desktop/Projects/Archive', desc:'Finished or abandoned experiments. Keeps Working clean so you can see what\'s actually live at a glance.' }
+        ],
+        tip:{ label:'Key habit to build', body:'Before every Claude session: in Terminal type <code>cd ~/Desktop/Projects/Working/your-project-name</code> and press Enter. This "scopes" Claude so it only touches that one folder.' }
       }
     ]},
     { title:'Connect GitHub & Vercel', pages:[
       { type:'info', heading:'Why GitHub + Vercel?',
         body:[
-          'GitHub stores your code and keeps version history — every change Claude makes can be reviewed, undone, or shared. Vercel takes that code and serves it at a real URL, free, in under a minute.',
-          'Together they form the smallest possible ship pipeline — write code, commit to GitHub, Vercel auto-deploys, you get a live URL. No servers, no DevOps.'
+          'GitHub is like Google Drive for code — it stores every version of your project so you can always undo a change. Vercel takes whatever code is on GitHub and hosts it at a real URL automatically, every time something changes.',
+          'Once connected, your entire deploy pipeline is: describe what to build → Claude writes and pushes the code → Vercel detects the push and goes live in 30 seconds. You never touch a server.'
         ],
-        keyPoint:{ body:'GitHub = storage + history. Vercel = the live link. Connect them once and every future push deploys itself.' }
+        keyPoint:{ body:'GitHub = version history + cloud backup. Vercel = the live link anyone can open. Connect them once, and every push auto-deploys itself forever.' }
       },
-      { type:'info', heading:'GitHub account basics',
+      { type:'info', heading:'GitHub: create your account and connect it',
         body:[
-          'Sign up at github.com — free, no credit card needed. Pick a username you don\'t mind being public since it shows up in URLs.'
+          'GitHub is free. You just need an email address. The username you pick shows up in URLs (like github.com/yourname/project-name) — pick something you\'re okay being public.',
+          'After creating the account, you connect it to your terminal in one command so Claude can push code on your behalf without any extra steps from you.'
         ],
         steps:[
-          { title:'Create the account', desc:'github.com → Sign up. Use a real email for password recovery.' },
-          { title:'Authenticate the gh CLI', desc:'Run <code>gh auth login</code> in your terminal. Pick GitHub.com → HTTPS → login with browser.' },
-          { title:'Verify it works', desc:'Run <code>gh repo list</code>. If you see a list (even an empty one), Claude can now push code on your behalf.' }
+          { title:'1. Create the account', desc:'Go to <strong>github.com</strong> → click "Sign up" → enter your email, a password, and a username → verify your email address.' },
+          { title:'2. Connect your terminal', desc:'Open Terminal (⌘ + Space → type Terminal → Enter). Paste: <code>gh auth login</code> → press Enter → choose GitHub.com → HTTPS → Login with a web browser. Your browser opens — click "Authorize github".' },
+          { title:'3. Verify it worked', desc:'Back in Terminal, type <code>gh repo list</code> and press Enter. You\'ll see a blank list or your repos. No error = you\'re connected and Claude can push code.' }
         ],
-        tip:{ label:'Don\'t over-think it', body:'You don\'t need a profile picture, README, or any repos yet. The CLI login is what unlocks Claude — everything else can wait.' }
+        breakdown:[
+          { cmd:'Ask Claude to help:', desc:'"I just created a GitHub account with username [your-username]. Help me connect it to my terminal using the gh CLI — walk me through each step."' }
+        ],
+        tip:{ label:'Nothing to set up on GitHub itself', body:'You don\'t need a profile picture, bio, or any repos yet. The CLI connection is the only thing that matters — Claude uses that to create and push repos for you.' }
       },
-      { type:'info', heading:'Vercel: your free hosting',
+      { type:'info', heading:'Vercel: free instant hosting',
         body:[
-          'Vercel hosts websites deployed from GitHub automatically. Sign up at vercel.com with your GitHub account — that single click links the two services.'
+          'Vercel hosts websites for free. You sign up with your GitHub account — that one click links both services, so every GitHub push automatically rebuilds and updates your live URL.',
+          'You also install the Vercel CLI so Claude can deploy directly from the terminal without you clicking around in a browser.'
         ],
         steps:[
-          { title:'Sign in with GitHub', desc:'vercel.com → Sign up → Continue with GitHub. Approve the access prompt.' },
-          { title:'Install the Vercel CLI', desc:'Run <code>npm install -g vercel</code> then <code>vercel login</code> to authenticate the terminal.' },
-          { title:'Set your API keys', desc:'In Vercel → Project Settings → Environment Variables, add <code>ANTHROPIC_API_KEY</code> (and any others) for projects that call Claude\'s API server-side.' }
+          { title:'1. Create the account', desc:'Go to <strong>vercel.com</strong> → click "Sign up" → "Continue with GitHub" → approve the access request. Your account is instantly linked to GitHub.' },
+          { title:'2. Install the CLI', desc:'In Terminal, paste: <code>npm install -g vercel</code> and press Enter. Wait for it to finish — you\'ll see a success message.' },
+          { title:'3. Log in the CLI', desc:'Paste: <code>vercel login</code> → press Enter → choose "Continue with GitHub" → browser opens → click "Authorize Vercel." Done.' },
+          { title:'4. API keys (for AI projects)', desc:'In Vercel dashboard → your project → Settings → Environment Variables → add <code>ANTHROPIC_API_KEY</code> for any project that calls Claude\'s API. Claude will remind you when needed.' }
         ],
-        keyPoint:{ body:'Every git push to your main branch becomes a live deploy in ~30 seconds. No build server to babysit.' }
+        breakdown:[
+          { cmd:'Ask Claude to test it:', desc:'"I\'ve set up Vercel. Create a simple index.html file in this folder that says Hello World, then deploy it to Vercel so I can see a live URL."' }
+        ],
+        keyPoint:{ body:'Every git push to your main branch deploys in ~30 seconds. You get the live URL in the Vercel dashboard — no extra steps.' }
       },
-      { type:'info', heading:'Skills that ship for you',
+      { type:'info', heading:'Let Claude ship for you',
         body:[
-          'Claude Code skills are reusable command sequences. I built two that turn "make this thing live" into a single prompt — <strong>deploy-to-github</strong> creates a repo and pushes; <strong>deploy-and-share</strong> goes further with repo + Vercel deploy + returns the live URL.'
+          'Once GitHub and Vercel are connected, you can deploy anything with a single prompt. Claude knows the exact commands to create a repo, push your code, and get a Vercel URL — you just have to ask.',
+          'These phrases reliably trigger the full deploy sequence. Copy them exactly the first time:'
         ],
-        steps:[
-          { title:'Why bother?', desc:'Without skills, you tell Claude every deploy step manually. With skills, you say "ship it" once.' },
-          { title:'Where they live', desc:'<code>~/.claude/skills/</code> — each skill is a folder with a SKILL.md describing what it does.' },
-          { title:'Trigger them', desc:'Just ask Claude — "deploy this to GitHub" or "push this live." If a matching skill exists, Claude runs it automatically.' }
+        breakdown:[
+          { cmd:'Deploy to GitHub only:', desc:'"Push this project to a new public GitHub repo called [your-project-name]."' },
+          { cmd:'Deploy + get live URL:', desc:'"Deploy this project to GitHub and Vercel and give me the live URL when done."' },
+          { cmd:'First time ever deploying:', desc:'"This is my first deploy. Walk me through pushing to GitHub and Vercel step by step, explaining what each step does."' },
+          { cmd:'Something broke:', desc:'"The deploy failed. Here\'s the error: [paste error]. Fix it and try again."' }
         ],
-        tip:{ label:'Start with deploy-to-github', body:'It\'s the simpler of the two — gets your code online without the Vercel step. Once that works reliably, layer on deploy-and-share.' }
+        tip:{ label:'Use the verbose prompt once', body:'The "first time ever" prompt above asks Claude to explain every step. Do it once so you understand what\'s happening — then use the short versions for every project after that.' }
       }
     ]},
     { title:'Build & Ship Projects', pages:[
       { type:'info', heading:'Build small, then build big',
         body:[
-          'The fastest way to learn what Claude can do is to ship things. Start with projects that have no moving parts — pure HTML, no APIs, no accounts to wire up. Once those feel easy, add complexity one layer at a time.'
+          'The fastest way to get good at Claude Code is to ship things in order of complexity. Each tier teaches a new concept — skip a tier and you\'ll hit a wall on the next one. The tiers are short: Tier 1 takes an afternoon, Tier 2 a day, Tier 3 a weekend.'
         ],
         steps:[
-          { title:'Tier 1 — Static sites', desc:'Single HTML files. No backend, no API keys. Ship in under an hour.' },
-          { title:'Tier 2 — API-driven apps', desc:'Add environment variables and an external API call. Now you\'re a real developer.' },
-          { title:'Tier 3 — Full-scale apps', desc:'Multi-component React, state management, custom domains. Everything you\'ve been doing comes together.' }
-        ]
+          { title:'Tier 1 — Static sites', desc:'A single HTML file with no backend. No API keys, no build tools, no accounts to wire up. Ship in under an hour. Teaches you the core loop: describe → Claude builds → deploy → share the link.' },
+          { title:'Tier 2 — API-driven apps', desc:'Add an API call and environment variables. The app now fetches live data or calls an AI. Teaches you what "server-side" means, how secrets work, and what JSON is.' },
+          { title:'Tier 3 — Full-scale React apps', desc:'Multiple components, shared state, routing, data layers. Teaches you to direct Claude across many files at once. This is the real power move.' }
+        ],
+        keyPoint:{ body:'Don\'t skip Tier 1. It looks simple, but it\'s where you build the deploy habit that makes Tiers 2 and 3 feel easy instead of overwhelming.' }
       },
-      { type:'info', heading:'Tier 1: Static-site warmups',
+      { type:'info', heading:'Tier 1: your first static site',
         body:[
-          'Pick a project that fits on one page — a personal site, a small game, a calculator. The goal isn\'t the project itself, it\'s building muscle memory for the workflow — prompt, review the diff, push, get a live link.'
+          'Your first project should fit on one page. A personal resume site is perfect — one HTML file, your real content, and something you\'d actually use. The goal is learning the loop: describe → Claude builds → you deploy → live link.',
+          'Copy the prompts below directly into Claude Code. Don\'t rephrase them the first time — use them exactly, then iterate once you see what comes back.'
+        ],
+        breakdown:[
+          { cmd:'Prompt to build it:', desc:'"Build me a personal resume website as a single self-contained HTML file. Sections: About Me, Work Experience, Skills, and Contact info. Use a clean dark navy and gold color scheme. No external dependencies — all CSS and JS inline in the file."' },
+          { cmd:'Prompt to deploy it:', desc:'"This looks good. Deploy it to a new public GitHub repo called resume-website, then deploy to Vercel. Give me the live URL when done."' }
         ],
         steps:[
-          { title:'Resume website', desc:'A single HTML file with your work history. Teaches you the prompt → deploy loop. Ship it in 30 minutes.' },
-          { title:'Golf range mini-game', desc:'Canvas + JavaScript, all in one file. Teaches you that "vanilla" doesn\'t mean "boring" — full physics in a couple hundred lines.' }
+          { title:'What good output looks like', desc:'A clean one-page site with four sections, loads instantly, looks decent on mobile, and has a live Vercel URL — in under 30 minutes of your first prompt.' },
+          { title:'Next Tier 1 project', desc:'Try a simple game: "Build a browser-based mini golf game as a single HTML file using Canvas. The ball should respond to click-and-drag power shots. Keep it simple — one hole is fine." Same deploy loop, totally different code.' }
         ],
-        keyPoint:{ body:'These two cover 80% of what you need to know — HTML structure, inline JS, and the deploy loop. Skip them and you\'ll fight the harder ones.' }
+        keyPoint:{ body:'The deploy is the lesson, not the design. Getting a real URL for the first time is the moment everything clicks. Do it even if the site isn\'t pretty yet.' }
       },
-      { type:'info', heading:'Tier 2: Wire up an API',
+      { type:'info', heading:'Tier 2: wire up an API',
         body:[
-          'Now things get interesting. You\'ll learn to handle environment variables, make HTTP calls, and parse JSON. Claude does most of it — your job is to know what to ask for.'
+          'Now you build something that fetches live data or calls an AI. This is where most beginners get stuck — environment variables, server-side calls, and JSON responses. Claude handles all of it if you give the right context upfront.',
+          'Use the two-stage approach: build the frontend first with fake data, then layer in the real API. This way you\'re never debugging the UI and the API at the same time.'
+        ],
+        breakdown:[
+          { cmd:'Stage 1 — Build the UI:', desc:'"Build a personal finance tracker using React and Vite. Features: add/delete transactions with a category and amount, monthly summary showing total by category, simple bar chart. Store everything in localStorage — no backend yet. Use Tailwind for styling."' },
+          { cmd:'Stage 2 — Add the API:', desc:'"Now add AI categorization: when I type a transaction description, it calls the Claude API to suggest the best category from my existing list. Store the key in an environment variable called ANTHROPIC_API_KEY. Make sure the key never appears in the frontend bundle."' },
+          { cmd:'If something breaks:', desc:'"The API call is failing. Here\'s what I see in the browser console: [paste error]. Diagnose it and fix it."' }
+        ],
+        tip:{ label:'API key safety — important', body:'Never paste your actual API key into the Claude chat or into your code files. Tell Claude the variable name (e.g. <code>ANTHROPIC_API_KEY</code>) and add the real key in Vercel\'s Environment Variables panel in the browser. Claude will set the code up correctly if you just give it the name.' }
+      },
+      { type:'info', heading:'Tier 3: full-scale React app',
+        body:[
+          'You\'re now directing Claude across multiple files, components, and state layers. The key shift at Tier 3: <strong>design first, then build</strong>. Give Claude the complete picture upfront — every page, every feature, the data model — so it doesn\'t make guesses that break things three prompts later.',
+          'A tracking dashboard with multiple views is the perfect Tier 3 project. Walk through this with Claude yourself — use the prompts below as your starting point.'
+        ],
+        breakdown:[
+          { cmd:'Prompt to start:', desc:'"Build a PGA Championship leaderboard tracker as a React + Vite + Tailwind app. It needs four pages: (1) full player leaderboard sorted by total score with scores per round, (2) a picks page where I can select up to 5 golfers, (3) a my-picks summary showing how my golfers are doing vs the field, (4) a settings page to reset picks. Store picks in localStorage. Navy and gold color scheme. Use React Router for navigation."' },
+          { cmd:'After it\'s built — verify it:', desc:'"Run the dev server and check these things: does the leaderboard sort correctly by total score? Can I add and remove picks from the picks page? Does my-picks update when I change picks? Tell me anything that\'s broken or missing."' },
+          { cmd:'Fix issues:', desc:'"The leaderboard isn\'t sorting correctly when scores tie. Players with the same score should be sorted alphabetically as a tiebreaker. Fix it."' },
+          { cmd:'Deploy:', desc:'"Build the production bundle and deploy to GitHub (repo name: pga-tracker) and Vercel. Give me the live URL."' }
         ],
         steps:[
-          { title:'Personal Finance Tracker', desc:'Tracks spending with localStorage. Pure frontend at first — then add an AI categorization API. Two-stage build teaches you how features layer in.' },
-          { title:'Travel Itinerary App', desc:'Searches flights, hotels, and activities via real APIs. You\'ll set up API keys, handle errors, and design a multi-step form.' }
+          { title:'What good output looks like', desc:'5+ React components, a shared data hook, at least 3 distinct navigable pages, working on mobile, a Vercel URL live within 15 minutes of your first prompt, and no console errors.' },
+          { title:'Signs you\'re doing it right', desc:'Claude creates a clear file structure before writing any code. It asks a clarifying question or two. When something breaks, it reads the error and fixes it without you having to explain what went wrong.' },
+          { title:'Signs to course-correct', desc:'If Claude writes everything in one huge file, say: "Refactor this into separate components — one per logical section, plus a custom hook for shared data." If the deploy fails, paste the full terminal error back to Claude.' }
         ],
-        tip:{ label:'API key safety', body:'Never paste a key directly into committed code. Store it in Vercel\'s Environment Variables panel and access it server-side via <code>process.env</code>. Claude sets this up correctly if you mention the API by name.' }
+        keyPoint:{ body:'At Tier 3 you\'re the product manager, not the coder. Spend 5 extra minutes making the first prompt complete and specific — it saves 30 minutes of corrections and back-and-forth.' }
       },
       { type:'quiz', heading:'Playbook check',
         questions:[
-          { q:'You\'re starting a brand-new project. What\'s the first command?',
-            options:['<code>npm install</code>','<code>mkdir my-project && cd my-project</code>','<code>vercel deploy</code>','<code>gh repo create</code>'],
+          { q:'You\'re starting a brand-new project. What\'s the first thing to do?',
+            options:['Run <code>npm install</code>','Make a folder and navigate into it in Terminal','Run <code>vercel deploy</code>','Open Claude Code and start typing'],
             correct:1,
-            fb:'Make a folder, then <code>cd</code> into it. That folder becomes the scope of your Claude Code session — everything else (claude, gh, vercel) gets run from inside it.'
+            fb:'Make a folder first, then <code>cd</code> into it. That folder becomes the scope for the entire Claude session — everything Claude creates, reads, and edits will be inside it.'
           },
-          { q:'Why does Vercel deploy automatically when you push to GitHub?',
-            options:['Vercel polls your repo every minute','GitHub sends a webhook to Vercel on every push','Claude triggers it manually','You have to run <code>vercel deploy</code> after every push'],
+          { q:'Why does Vercel deploy automatically when you push code to GitHub?',
+            options:['Vercel polls your repo every few minutes','GitHub sends a webhook notification to Vercel instantly','Claude triggers it with a separate command','You have to run vercel deploy manually each time'],
             correct:1,
-            fb:'GitHub webhooks notify Vercel instantly. That\'s why the "push to ship" loop feels magical — there\'s a real-time event triggering the build.'
+            fb:'GitHub fires a webhook to Vercel the instant a push happens. Vercel catches it, runs the build, and updates the live URL — all without you doing anything. That\'s why the loop feels instant.'
           },
-          { q:'Which kind of project should you build first?',
-            options:['A full-stack SaaS app with auth','A single static HTML file like a resume','A multi-API trip planner','A React Native mobile app'],
+          { q:'Why should you build a static HTML site before a React app?',
+            options:['React is too complicated to learn','The deploy loop is the same but there\'s nothing else to debug — you learn one thing at a time','Static sites are faster than React apps','Claude can\'t build React apps'],
             correct:1,
-            fb:'Start static. You\'ll learn the deploy loop without fighting environment variables or state management. Once that\'s smooth, every harder project layers on top.'
+            fb:'Tier 1 isolates the deploy habit from everything else. No environment variables, no build tools, no state management. Master the loop with no distractions — then every harder tier layers on top of that solid base.'
           }
         ]
       }
