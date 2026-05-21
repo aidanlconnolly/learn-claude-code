@@ -28,6 +28,12 @@
     .nav-brand span { color: var(--gold); }
     .nav-meta { font-size: 0.8rem; color: var(--gray-400); }
 
+    /* TAB BAR */
+    .tab-bar { background: var(--navy-mid); border-bottom: 1px solid var(--navy-light); padding: 0 24px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+    .tab-button { background: transparent; border: none; color: rgba(255,255,255,0.55); font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 600; padding: 14px 18px; cursor: pointer; border-bottom: 3px solid transparent; transition: color 0.15s, border-color 0.15s; margin-bottom: -1px; white-space: nowrap; }
+    .tab-button:hover { color: var(--gold-light); }
+    .tab-button.active { color: var(--gold); border-bottom-color: var(--gold); }
+
     /* ROADMAP HERO */
     .road-hero { background: var(--navy); padding: 48px 24px 56px; text-align: center; }
     .road-hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; color: var(--white); margin-bottom: 10px; }
@@ -215,10 +221,11 @@
     <div class="nav-brand">Learn <span>Claude Code</span></div>
     <div id="nav-progress" class="nav-meta">0 of 24 lessons done</div>
   </nav>
-  <div class="road-hero">
-    <h1>Your <em>Skills Journey</em></h1>
-    <p>Eight skills that unlock everything. Complete lessons in order or jump ahead — your progress saves automatically.</p>
+  <div class="tab-bar">
+    <button class="tab-button active" data-tab="journey" onclick="switchTab('journey')">Learning Journey</button>
+    <button class="tab-button" data-tab="playbook" onclick="switchTab('playbook')">Claude Code Playbook Setup</button>
   </div>
+  <div class="road-hero" id="road-hero"></div>
   <div class="path-wrapper">
     <div class="path-spine"></div>
     <div id="skill-nodes"></div>
@@ -1117,6 +1124,153 @@ app = <span class="fn">Flask</span>(__name__)
 ];
 
 // ═══════════════════════════════════════════════════════════════════
+// PLAYBOOK DATA  (Claude Code Playbook Setup tab)
+// ═══════════════════════════════════════════════════════════════════
+const PLAYBOOK = [
+{
+  id:'pb-setup', icon:'🗺️', title:'Claude Code Playbook Setup', badge:'Game Changer', badgeClass:'badge-gold', iconBg:'bg-gold',
+  tagline:'Everything I\'ve actually done — install, accounts, deploy skills, and the projects I built to learn. Follow it top to bottom.',
+  lessons:[
+    { title:'Set Up Your Machine', pages:[
+      { type:'info', heading:'Your Claude Code starter kit',
+        body:[
+          'This playbook is the exact path I took: download Claude Code, set up a few accounts, then build real things. Every step here is something you can do in an afternoon.',
+          'The goal — by the end you can describe an idea to Claude and have a live URL to share within minutes, not days.'
+        ],
+        keyPoint:{ body:'Setup once, ship forever. The first hour of pain saves you weeks down the line.' }
+      },
+      { type:'terminal', heading:'Install <span class="mono">claude</span>',
+        intro:'Claude Code runs in your terminal. One npm command installs it globally so you can launch it from any folder.',
+        lines:[
+          { prompt:true, text:'npm install -g @anthropic-ai/claude-code' },
+          { prompt:false, text:'added 142 packages in 8s' },
+          { prompt:true, text:'claude --version' },
+          { prompt:false, text:'2.0.0' }
+        ],
+        explain:'Once installed, run <strong>claude</strong> from inside any project folder to start a session. The first launch will ask for your Anthropic API key — have it ready from console.anthropic.com.'
+      },
+      { type:'terminal', heading:'Mac essentials: <span class="mono">brew</span>, <span class="mono">node</span>, <span class="mono">gh</span>',
+        intro:'Three tools you\'ll touch constantly — Homebrew (package manager), Node (powers npm and every React project), and the GitHub CLI (lets Claude push code without leaving the terminal).',
+        lines:[
+          { prompt:true, text:'/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' },
+          { prompt:false, text:'Homebrew installed.' },
+          { prompt:true, text:'brew install node gh' },
+          { prompt:false, text:'node 22.x and gh 2.x installed.' },
+          { prompt:true, text:'gh auth login' },
+          { prompt:false, text:'✓ Logged in as your-username' }
+        ],
+        explain:'Brew gives you <strong>node</strong> (every Vite/React project needs it) and <strong>gh</strong> (lets Claude push to GitHub for you). Authenticate <strong>gh</strong> once — Claude reuses that login forever after.'
+      },
+      { type:'info', heading:'Where your projects live',
+        body:[
+          'A clean folder structure means Claude always knows where to put new code. I keep a Desktop / Projects / Working setup so Claude works inside one project at a time without ever touching the others.'
+        ],
+        steps:[
+          { title:'~/Desktop/Projects', desc:'Top-level home for everything code-related.' },
+          { title:'~/Desktop/Projects/Working', desc:'One folder per active project. Start Claude from inside the specific subfolder you want it scoped to.' },
+          { title:'~/Desktop/Projects/Archive', desc:'Old experiments. Keeps Working tidy so you can see what\'s actually live.' }
+        ],
+        tip:{ label:'Pro tip', body:'Always <code>cd</code> into the specific project folder before running <code>claude</code>. That scopes what Claude can read and edit, preventing accidental cross-project changes.' }
+      }
+    ]},
+    { title:'Connect GitHub & Vercel', pages:[
+      { type:'info', heading:'Why GitHub + Vercel?',
+        body:[
+          'GitHub stores your code and keeps version history — every change Claude makes can be reviewed, undone, or shared. Vercel takes that code and serves it at a real URL, free, in under a minute.',
+          'Together they form the smallest possible ship pipeline — write code, commit to GitHub, Vercel auto-deploys, you get a live URL. No servers, no DevOps.'
+        ],
+        keyPoint:{ body:'GitHub = storage + history. Vercel = the live link. Connect them once and every future push deploys itself.' }
+      },
+      { type:'info', heading:'GitHub account basics',
+        body:[
+          'Sign up at github.com — free, no credit card needed. Pick a username you don\'t mind being public since it shows up in URLs.'
+        ],
+        steps:[
+          { title:'Create the account', desc:'github.com → Sign up. Use a real email for password recovery.' },
+          { title:'Authenticate the gh CLI', desc:'Run <code>gh auth login</code> in your terminal. Pick GitHub.com → HTTPS → login with browser.' },
+          { title:'Verify it works', desc:'Run <code>gh repo list</code>. If you see a list (even an empty one), Claude can now push code on your behalf.' }
+        ],
+        tip:{ label:'Don\'t over-think it', body:'You don\'t need a profile picture, README, or any repos yet. The CLI login is what unlocks Claude — everything else can wait.' }
+      },
+      { type:'info', heading:'Vercel: your free hosting',
+        body:[
+          'Vercel hosts websites deployed from GitHub automatically. Sign up at vercel.com with your GitHub account — that single click links the two services.'
+        ],
+        steps:[
+          { title:'Sign in with GitHub', desc:'vercel.com → Sign up → Continue with GitHub. Approve the access prompt.' },
+          { title:'Install the Vercel CLI', desc:'Run <code>npm install -g vercel</code> then <code>vercel login</code> to authenticate the terminal.' },
+          { title:'Set your API keys', desc:'In Vercel → Project Settings → Environment Variables, add <code>ANTHROPIC_API_KEY</code> (and any others) for projects that call Claude\'s API server-side.' }
+        ],
+        keyPoint:{ body:'Every git push to your main branch becomes a live deploy in ~30 seconds. No build server to babysit.' }
+      },
+      { type:'info', heading:'Skills that ship for you',
+        body:[
+          'Claude Code skills are reusable command sequences. I built two that turn "make this thing live" into a single prompt — <strong>deploy-to-github</strong> creates a repo and pushes; <strong>deploy-and-share</strong> goes further with repo + Vercel deploy + returns the live URL.'
+        ],
+        steps:[
+          { title:'Why bother?', desc:'Without skills, you tell Claude every deploy step manually. With skills, you say "ship it" once.' },
+          { title:'Where they live', desc:'<code>~/.claude/skills/</code> — each skill is a folder with a SKILL.md describing what it does.' },
+          { title:'Trigger them', desc:'Just ask Claude — "deploy this to GitHub" or "push this live." If a matching skill exists, Claude runs it automatically.' }
+        ],
+        tip:{ label:'Start with deploy-to-github', body:'It\'s the simpler of the two — gets your code online without the Vercel step. Once that works reliably, layer on deploy-and-share.' }
+      }
+    ]},
+    { title:'Build & Ship Projects', pages:[
+      { type:'info', heading:'Build small, then build big',
+        body:[
+          'The fastest way to learn what Claude can do is to ship things. Start with projects that have no moving parts — pure HTML, no APIs, no accounts to wire up. Once those feel easy, add complexity one layer at a time.'
+        ],
+        steps:[
+          { title:'Tier 1 — Static sites', desc:'Single HTML files. No backend, no API keys. Ship in under an hour.' },
+          { title:'Tier 2 — API-driven apps', desc:'Add environment variables and an external API call. Now you\'re a real developer.' },
+          { title:'Tier 3 — Full-scale apps', desc:'Multi-component React, state management, custom domains. Everything you\'ve been doing comes together.' }
+        ]
+      },
+      { type:'info', heading:'Tier 1: Static-site warmups',
+        body:[
+          'Pick a project that fits on one page — a personal site, a small game, a calculator. The goal isn\'t the project itself, it\'s building muscle memory for the workflow — prompt, review the diff, push, get a live link.'
+        ],
+        steps:[
+          { title:'Resume website', desc:'A single HTML file with your work history. Teaches you the prompt → deploy loop. Ship it in 30 minutes.' },
+          { title:'Golf range mini-game', desc:'Canvas + JavaScript, all in one file. Teaches you that "vanilla" doesn\'t mean "boring" — full physics in a couple hundred lines.' }
+        ],
+        keyPoint:{ body:'These two cover 80% of what you need to know — HTML structure, inline JS, and the deploy loop. Skip them and you\'ll fight the harder ones.' }
+      },
+      { type:'info', heading:'Tier 2: Wire up an API',
+        body:[
+          'Now things get interesting. You\'ll learn to handle environment variables, make HTTP calls, and parse JSON. Claude does most of it — your job is to know what to ask for.'
+        ],
+        steps:[
+          { title:'Personal Finance Tracker', desc:'Tracks spending with localStorage. Pure frontend at first — then add an AI categorization API. Two-stage build teaches you how features layer in.' },
+          { title:'Travel Itinerary App', desc:'Searches flights, hotels, and activities via real APIs. You\'ll set up API keys, handle errors, and design a multi-step form.' }
+        ],
+        tip:{ label:'API key safety', body:'Never paste a key directly into committed code. Store it in Vercel\'s Environment Variables panel and access it server-side via <code>process.env</code>. Claude sets this up correctly if you mention the API by name.' }
+      },
+      { type:'quiz', heading:'Playbook check',
+        questions:[
+          { q:'You\'re starting a brand-new project. What\'s the first command?',
+            options:['<code>npm install</code>','<code>mkdir my-project && cd my-project</code>','<code>vercel deploy</code>','<code>gh repo create</code>'],
+            correct:1,
+            fb:'Make a folder, then <code>cd</code> into it. That folder becomes the scope of your Claude Code session — everything else (claude, gh, vercel) gets run from inside it.'
+          },
+          { q:'Why does Vercel deploy automatically when you push to GitHub?',
+            options:['Vercel polls your repo every minute','GitHub sends a webhook to Vercel on every push','Claude triggers it manually','You have to run <code>vercel deploy</code> after every push'],
+            correct:1,
+            fb:'GitHub webhooks notify Vercel instantly. That\'s why the "push to ship" loop feels magical — there\'s a real-time event triggering the build.'
+          },
+          { q:'Which kind of project should you build first?',
+            options:['A full-stack SaaS app with auth','A single static HTML file like a resume','A multi-API trip planner','A React Native mobile app'],
+            correct:1,
+            fb:'Start static. You\'ll learn the deploy loop without fighting environment variables or state management. Once that\'s smooth, every harder project layers on top.'
+          }
+        ]
+      }
+    ]}
+  ]
+}
+];
+
+// ═══════════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════════
 const STORAGE_KEY = 'ccl_journey_v1';
@@ -1139,28 +1293,50 @@ function markLessonDone(skillId, lessonIdx) {
   saveProgress(p);
 }
 
-function totalLessonsDone() {
+function totalLessonsDone(arr) {
+  const list = arr || SKILLS;
   const p = getProgress();
-  return SKILLS.reduce((sum, sk) => sum + (p[sk.id]?.done || []).filter(Boolean).length, 0);
+  return list.reduce((sum, sk) => sum + (p[sk.id]?.done || []).filter(Boolean).length, 0);
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // NAVIGATION STATE
 // ═══════════════════════════════════════════════════════════════════
+let currentTab = 'journey';
+let curArray = SKILLS;
 let curSkill = 0, curLesson = 0, curPage = 0;
 let quizState = { qIdx: 0, answered: false, canContinue: false };
 let nextBlocked = false;
+
+function getTabArray(tab) {
+  return tab === 'playbook' ? PLAYBOOK : SKILLS;
+}
+
+function switchTab(tab) {
+  if (tab === currentTab) return;
+  currentTab = tab;
+  document.querySelectorAll('.tab-button').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  renderRoadmap();
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // ROADMAP RENDER
 // ═══════════════════════════════════════════════════════════════════
 function renderRoadmap() {
-  const done = totalLessonsDone();
+  const arr = getTabArray(currentTab);
+  const done = totalLessonsDone(arr);
   document.getElementById('nav-progress').textContent =
-    `${done} of ${SKILLS.length * 3} lessons done`;
+    `${done} of ${arr.length * 3} lessons done`;
+
+  const hero = document.getElementById('road-hero');
+  hero.innerHTML = currentTab === 'playbook'
+    ? '<h1>Claude Code <em>Playbook</em></h1><p>Everything I\'ve actually done — install, accounts, deploy skills, and the projects I built to learn. Follow it top to bottom.</p>'
+    : '<h1>Your <em>Skills Journey</em></h1><p>Eight skills that unlock everything. Complete lessons in order or jump ahead — your progress saves automatically.</p>';
 
   const container = document.getElementById('skill-nodes');
-  container.innerHTML = SKILLS.map((sk, i) => {
+  container.innerHTML = arr.map((sk, i) => {
     const ld = getLessonsDone(sk.id);
     const doneCount = ld.filter(Boolean).length;
     const allDone = doneCount === 3;
@@ -1191,8 +1367,9 @@ function renderRoadmap() {
 // LESSON VIEW
 // ═══════════════════════════════════════════════════════════════════
 function openSkill(skillIdx) {
+  curArray = getTabArray(currentTab);
   curSkill = skillIdx;
-  const ld = getLessonsDone(SKILLS[skillIdx].id);
+  const ld = getLessonsDone(curArray[skillIdx].id);
   curLesson = ld.indexOf(false);
   if (curLesson === -1) curLesson = 0;
   curPage = 0;
@@ -1221,7 +1398,7 @@ function switchLesson(idx) {
 }
 
 function renderLessonView() {
-  const skill = SKILLS[curSkill];
+  const skill = curArray[curSkill];
   const lesson = skill.lessons[curLesson];
   const page = lesson.pages[curPage];
   const totalPages = lesson.pages.length;
@@ -1414,7 +1591,7 @@ function nextQuizQuestion() {
 }
 
 function getCurrentPage() {
-  return SKILLS[curSkill].lessons[curLesson].pages[curPage];
+  return curArray[curSkill].lessons[curLesson].pages[curPage];
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1422,7 +1599,7 @@ function getCurrentPage() {
 // ═══════════════════════════════════════════════════════════════════
 function nextPage() {
   if (nextBlocked) return;
-  const skill = SKILLS[curSkill];
+  const skill = curArray[curSkill];
   const lesson = skill.lessons[curLesson];
   const totalPages = lesson.pages.length;
   const isLastPage = curPage === totalPages - 1;
@@ -1449,7 +1626,7 @@ function prevPage() {
     renderLessonView();
   } else if (curLesson > 0) {
     curLesson--;
-    const lesson = SKILLS[curSkill].lessons[curLesson];
+    const lesson = curArray[curSkill].lessons[curLesson];
     curPage = lesson.pages.length - 1;
     renderLessonView();
   }

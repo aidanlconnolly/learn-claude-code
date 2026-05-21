@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "learn-claude-code",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "cd '/Users/aidanconnolly/Desktop/Projects/Working/Learn Claude Code' && python3 -m http.server 5500"],
+      "port": 5500
+    }
+  ]
+}

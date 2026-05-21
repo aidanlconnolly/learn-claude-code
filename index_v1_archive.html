@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learn Claude Code</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0d1b2a;
+      --navy-mid: #1a2e44;
+      --navy-light: #243b55;
+      --gold: #c9a84c;
+      --gold-light: #e8c96a;
+      --gold-pale: #fdf6e3;
+      --white: #ffffff;
+      --gray-100: #f4f6f9;
+      --gray-200: #e8ecf1;
+      --gray-400: #9aa3b0;
+      --gray-600: #5a6577;
+      --text: #1a2236;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(13,27,42,0.10);
+      --shadow-lg: 0 8px 40px rgba(13,27,42,0.16);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray-100);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--navy);
+      border-bottom: 2px solid var(--gold);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .nav-brand {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--white);
+      padding: 14px 0;
+      letter-spacing: -0.3px;
+    }
+    .nav-brand span { color: var(--gold); }
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      padding: 8px 0;
+    }
+    .nav-links a {
+      color: var(--gray-400);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nav-links a:hover {
+      color: var(--white);
+      background: var(--navy-light);
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, #1e3a5a 100%);
+      padding: 72px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(201,168,76,0.18);
+      border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold-light);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -1px;
+    }
+    .hero h1 em { color: var(--gold-light); font-style: normal; }
+    .hero p {
+      font-size: clamp(1rem, 2.5vw, 1.18rem);
+      color: rgba(255,255,255,0.72);
+      max-width: 560px;
+      margin: 0 auto 36px;
+    }
+    .hero-cta {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 30px;
+      text-decoration: none;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.35);
+    }
+    .hero-cta:hover {
+      background: var(--gold-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(201,168,76,0.45);
+    }
+
+    /* SECTIONS */
+    section {
+      padding: 72px 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    section h2 {
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .section-sub {
+      color: var(--gray-600);
+      font-size: 1.05rem;
+      margin-bottom: 48px;
+      max-width: 600px;
+    }
+    .section-divider {
+      border: none;
+      border-top: 2px solid var(--gray-200);
+      margin: 0;
+    }
+
+    /* THE LOOP */
+    #the-loop { background: var(--white); border-radius: var(--radius); padding: 56px 32px; box-shadow: var(--shadow); margin: 0 auto; max-width: 960px; }
+    .loop-wrap { max-width: 960px; margin: 0 auto; padding: 72px 24px; }
+
+    .loop-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: nowrap;
+      margin: 0 auto;
+      max-width: 840px;
+      position: relative;
+    }
+    .loop-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+    .loop-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      box-shadow: 0 4px 20px rgba(13,27,42,0.18);
+      animation: pulse-ring 3s ease-in-out infinite;
+      position: relative;
+    }
+    .loop-step:nth-child(1) .loop-icon { animation-delay: 0s; }
+    .loop-step:nth-child(3) .loop-icon { animation-delay: 0.75s; }
+    .loop-step:nth-child(5) .loop-icon { animation-delay: 1.5s; }
+    .loop-step:nth-child(7) .loop-icon { animation-delay: 2.25s; }
+
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 4px 20px rgba(13,27,42,0.18), 0 0 0 0 rgba(201,168,76,0); }
+      25% { box-shadow: 0 4px 20px rgba(13,27,42,0.18), 0 0 0 8px rgba(201,168,76,0.25); }
+      50% { box-shadow: 0 4px 20px rgba(13,27,42,0.18), 0 0 0 16px rgba(201,168,76,0); }
+    }
+
+    .loop-step-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy);
+      text-align: center;
+    }
+    .loop-step-desc {
+      font-size: 0.8rem;
+      color: var(--gray-600);
+      text-align: center;
+      line-height: 1.4;
+      max-width: 100px;
+    }
+
+    .loop-arrow {
+      display: flex;
+      align-items: center;
+      padding-bottom: 44px;
+      flex-shrink: 0;
+    }
+    .loop-arrow svg {
+      width: 36px;
+      height: 20px;
+      animation: arrow-move 1.5s ease-in-out infinite;
+    }
+    .loop-arrow:nth-child(2) svg { animation-delay: 0s; }
+    .loop-arrow:nth-child(4) svg { animation-delay: 0.5s; }
+    .loop-arrow:nth-child(6) svg { animation-delay: 1s; }
+
+    @keyframes arrow-move {
+      0%, 100% { transform: translateX(0); opacity: 0.5; }
+      50% { transform: translateX(5px); opacity: 1; }
+    }
+
+    .loop-curve-hint {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 0.82rem;
+      color: var(--gray-400);
+      font-style: italic;
+    }
+
+    /* PROMPTS */
+    .prompts-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .prompt-pair {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1.5px solid var(--gray-200);
+      transition: border-color 0.2s;
+    }
+    .prompt-pair:hover { border-color: var(--gold); }
+    .prompt-pair-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--gray-100);
+      border-bottom: 1.5px solid var(--gray-200);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .prompt-pair-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .toggle-group {
+      display: flex;
+      background: var(--gray-200);
+      border-radius: 20px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .toggle-btn {
+      border: none;
+      background: none;
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--gray-600);
+      font-family: inherit;
+    }
+    .toggle-btn.active-bad {
+      background: #fde8e8;
+      color: #c0392b;
+    }
+    .toggle-btn.active-good {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .prompt-body { padding: 20px; }
+    .prompt-version { display: none; }
+    .prompt-version.active { display: block; }
+    .prompt-box {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      background: var(--navy);
+      color: #e2e8f0;
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .prompt-box.bad { border-left: 4px solid #e55; }
+    .prompt-box.good { border-left: 4px solid #4caf50; }
+    .prompt-insight {
+      font-size: 0.84rem;
+      color: var(--gray-600);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--gray-100);
+    }
+    .prompt-insight.bad { background: #fff5f5; color: #c0392b; }
+    .prompt-insight.good { background: #f0faf0; color: #2e7d32; }
+
+    /* SKILLS */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+    .skill-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      border: 1.5px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .skill-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .skill-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .skill-icon { font-size: 1.5rem; }
+    .skill-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    .badge-gamechanger {
+      background: rgba(201,168,76,0.18);
+      color: #8a6d10;
+      border: 1px solid rgba(201,168,76,0.5);
+    }
+    .badge-worthlearning {
+      background: #e8f4fd;
+      color: #1565c0;
+      border: 1px solid rgba(21,101,192,0.3);
+    }
+    .badge-nicetoknow {
+      background: var(--gray-100);
+      color: var(--gray-600);
+      border: 1px solid var(--gray-200);
+    }
+    .skill-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .skill-why {
+      font-size: 0.84rem;
+      color: var(--gray-600);
+      line-height: 1.5;
+    }
+    .skill-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      text-decoration: none;
+      margin-top: 4px;
+      transition: color 0.2s;
+    }
+    .skill-link:hover { color: var(--navy); }
+    .skill-link::after { content: '→'; }
+
+    /* GOLDEN RULES */
+    .rules-section { background: var(--navy); border-radius: var(--radius); padding: 48px 40px; }
+    .rules-section .section-label { color: var(--gold-light); }
+    .rules-section h2 { color: var(--white); }
+    .rules-section .section-sub { color: rgba(255,255,255,0.6); }
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .rule-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .rule-num {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 0.85rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rule-text {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.88);
+      line-height: 1.5;
+    }
+    .rule-text strong { color: var(--white); }
+    .print-btn {
+      background: transparent;
+      border: 2px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.7);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 10px 22px;
+      border-radius: 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .print-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* CHALLENGES */
+    .challenges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .challenge-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      box-shadow: var(--shadow);
+      border: 1.5px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .challenge-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .challenge-difficulty {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 12px;
+      display: inline-block;
+      width: fit-content;
+    }
+    .diff-easy { background: #e8f5e9; color: #2e7d32; }
+    .diff-medium { background: #fff8e1; color: #f57f17; }
+    .diff-hard { background: #fce4ec; color: #c62828; }
+    .challenge-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.35;
+    }
+    .challenge-prompt-preview {
+      font-size: 0.83rem;
+      color: var(--gray-600);
+      line-height: 1.55;
+      font-style: italic;
+    }
+    .copy-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: var(--navy);
+      color: var(--white);
+      border: none;
+      border-radius: 24px;
+      padding: 11px 20px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: auto;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: var(--navy-light); transform: translateY(-1px); }
+    .copy-btn.copied { background: #2e7d32; }
+
+    /* FOOTER */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.82rem;
+    }
+    footer a { color: var(--gold); text-decoration: none; }
+    footer a:hover { color: var(--gold-light); }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .loop-diagram { flex-direction: column; gap: 4px; }
+      .loop-arrow { transform: rotate(90deg); padding-bottom: 0; padding-right: 44px; }
+      .rules-section { padding: 36px 24px; }
+      section { padding: 48px 16px; }
+      #the-loop { padding: 36px 20px; }
+    }
+
+    @media print {
+      nav, .hero, #prompts, #skills, #challenges, footer, .print-btn { display: none !important; }
+      #rules { padding: 0; }
+      .rules-section { background: white; color: black; border: 2px solid #333; }
+      .rules-section h2, .rules-section .section-label, .rules-section .section-sub { color: black; }
+      .rule-card { border-color: #ccc; background: #f9f9f9; }
+      .rule-text { color: #333; }
+      .rule-text strong { color: black; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Learn <span>Claude Code</span></div>
+  <div class="nav-links">
+    <a href="#the-loop">The Loop</a>
+    <a href="#prompts">Better Prompts</a>
+    <a href="#skills">Skills</a>
+    <a href="#rules">Golden Rules</a>
+    <a href="#challenges">Challenges</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Interactive Guide</div>
+  <h1>Get the most out of<br><em>Claude Code</em></h1>
+  <p>A friendly, bitesize intro to writing better prompts, thinking in phases, and building the skills that make the whole thing click.</p>
+  <a href="#the-loop" class="hero-cta">Start learning →</a>
+</div>
+
+<!-- SECTION 1: THE LOOP -->
+<div class="loop-wrap" id="the-loop">
+  <div id="the-loop-section" style="max-width:960px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <div class="section-label">Section 1</div>
+      <h2>The Loop</h2>
+      <p class="section-sub" style="margin:0 auto;">Everything you do with Claude Code follows the same four-step cycle. Understand this and everything else clicks.</p>
+    </div>
+    <div class="loop-diagram">
+      <div class="loop-step">
+        <div class="loop-icon">💬</div>
+        <div class="loop-step-label">You Describe</div>
+        <div class="loop-step-desc">Tell Claude what you want to build</div>
+      </div>
+      <div class="loop-arrow">
+        <svg viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 10H34M26 3L34 10L26 17" stroke="#c9a84c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="loop-step">
+        <div class="loop-icon">⚡</div>
+        <div class="loop-step-label">Claude Writes</div>
+        <div class="loop-step-desc">Code appears — often working first try</div>
+      </div>
+      <div class="loop-arrow">
+        <svg viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 10H34M26 3L34 10L26 17" stroke="#c9a84c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="loop-step">
+        <div class="loop-icon">👁️</div>
+        <div class="loop-step-label">You Review</div>
+        <div class="loop-step-desc">Open in browser, check it actually works</div>
+      </div>
+      <div class="loop-arrow">
+        <svg viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 10H34M26 3L34 10L26 17" stroke="#c9a84c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="loop-step">
+        <div class="loop-icon">🔁</div>
+        <div class="loop-step-label">You Refine</div>
+        <div class="loop-step-desc">Describe what to tweak, repeat</div>
+      </div>
+    </div>
+    <p class="loop-curve-hint">The loop repeats until you're happy — and you can exit at any step.</p>
+  </div>
+</div>
+
+<hr class="section-divider" style="max-width:960px;margin:0 auto;" />
+
+<!-- SECTION 2: BETTER PROMPTS -->
+<section id="prompts">
+  <div class="section-label">Section 2</div>
+  <h2>How to Write Better Prompts</h2>
+  <p class="section-sub">Toggle between weak and strong versions to see exactly what makes the difference.</p>
+
+  <div class="prompts-grid">
+
+    <!-- Pair 1 -->
+    <div class="prompt-pair">
+      <div class="prompt-pair-header">
+        <div class="prompt-pair-title">1 — Vague vs. Specific</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active-bad" onclick="togglePrompt(this, 'p1', 'bad')">Weak</button>
+          <button class="toggle-btn" onclick="togglePrompt(this, 'p1', 'good')">Strong</button>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-version active" id="p1-bad">
+          <div class="prompt-box bad">Make me a website.</div>
+          <div class="prompt-insight bad">⚠ Claude has no idea what kind, what content, what style, or what it's for. You'll get a generic placeholder.</div>
+        </div>
+        <div class="prompt-version" id="p1-good">
+          <div class="prompt-box good">Build a single-page personal portfolio website for a product designer. Include sections for: bio, 3 featured projects with thumbnails, and a contact form. Clean minimal style, white background, dark navy text. Output as a single index.html file with inline CSS.</div>
+          <div class="prompt-insight good">✓ Claude knows the purpose, audience, content, visual direction, and output format. Far less guessing.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pair 2 -->
+    <div class="prompt-pair">
+      <div class="prompt-pair-header">
+        <div class="prompt-pair-title">2 — No Context vs. With Context</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active-bad" onclick="togglePrompt(this, 'p2', 'bad')">Weak</button>
+          <button class="toggle-btn" onclick="togglePrompt(this, 'p2', 'good')">Strong</button>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-version active" id="p2-bad">
+          <div class="prompt-box bad">Add a login page.</div>
+          <div class="prompt-insight bad">⚠ Claude doesn't know what stack you're using, whether auth exists, or how the app is structured. It'll invent assumptions.</div>
+        </div>
+        <div class="prompt-version" id="p2-good">
+          <div class="prompt-box good">I already have a Flask app with a users table (id, email, password_hash). Add a /login route that validates credentials, sets a session cookie, and redirects to /dashboard on success. Use the Werkzeug check_password_hash function I already imported. Don't add any new dependencies.</div>
+          <div class="prompt-insight good">✓ Claude knows what exists, what to use, and what not to touch. No guessing, no breakage.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pair 3 -->
+    <div class="prompt-pair">
+      <div class="prompt-pair-header">
+        <div class="prompt-pair-title">3 — Big Ask vs. Phased</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active-bad" onclick="togglePrompt(this, 'p3', 'bad')">Weak</button>
+          <button class="toggle-btn" onclick="togglePrompt(this, 'p3', 'good')">Strong</button>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-version active" id="p3-bad">
+          <div class="prompt-box bad">Build me a full e-commerce store with product listings, a cart, checkout, payments, and an admin dashboard.</div>
+          <div class="prompt-insight bad">⚠ This is 3–4 weeks of engineering work. You'll get a partial, broken mess — or Claude will refuse to start.</div>
+        </div>
+        <div class="prompt-version" id="p3-good">
+          <div class="prompt-box good">Let's build this in phases. Start with Phase 1 only:
+
+Phase 1 — Product listings page
+- Static HTML/CSS grid of 6 product cards
+- Each card: image placeholder, name, price, "Add to cart" button (no functionality yet)
+- Mobile responsive, clean design
+
+Stop after Phase 1. I'll ask for Phase 2 (cart logic) once this looks right.</div>
+          <div class="prompt-insight good">✓ Claude delivers one working thing you can actually test. You stay in control of the scope.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pair 4 -->
+    <div class="prompt-pair">
+      <div class="prompt-pair-header">
+        <div class="prompt-pair-title">4 — No Format vs. With Format</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active-bad" onclick="togglePrompt(this, 'p4', 'bad')">Weak</button>
+          <button class="toggle-btn" onclick="togglePrompt(this, 'p4', 'good')">Strong</button>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-version active" id="p4-bad">
+          <div class="prompt-box bad">Build a to-do app.</div>
+          <div class="prompt-insight bad">⚠ You might get a React app with 12 files, a Python backend, and a database — when you just wanted a quick HTML file.</div>
+        </div>
+        <div class="prompt-version" id="p4-good">
+          <div class="prompt-box good">Build a to-do app. Output as a single index.html file with inline &lt;style&gt; and &lt;script&gt;. No frameworks, no build steps, no external dependencies. I should be able to open the file directly in a browser.</div>
+          <div class="prompt-insight good">✓ You get exactly what you can use immediately. No setup, no npm install, no mystery.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pair 5 -->
+    <div class="prompt-pair">
+      <div class="prompt-pair-header">
+        <div class="prompt-pair-title">5 — No Constraints vs. With Constraints</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active-bad" onclick="togglePrompt(this, 'p5', 'bad')">Weak</button>
+          <button class="toggle-btn" onclick="togglePrompt(this, 'p5', 'good')">Strong</button>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-version active" id="p5-bad">
+          <div class="prompt-box bad">Add a chart to my dashboard.</div>
+          <div class="prompt-insight bad">⚠ Claude might introduce Chart.js, D3, or Recharts — adding a library you've never set up and breaking your existing code.</div>
+        </div>
+        <div class="prompt-version" id="p5-good">
+          <div class="prompt-box good">Add a bar chart to my dashboard showing monthly revenue (Jan–Jun, hardcoded data for now). Constraints: no new libraries — use only vanilla JavaScript and the Canvas API. Keep it inside the existing dashboard.html file I already have.</div>
+          <div class="prompt-insight good">✓ Constraints keep Claude inside your world. The result integrates cleanly with what you already built.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-divider" style="max-width:960px;margin:0 auto;" />
+
+<!-- SECTION 3: SKILLS -->
+<section id="skills">
+  <div class="section-label">Section 3</div>
+  <h2>Skills to Learn Alongside</h2>
+  <p class="section-sub">Claude Code handles the syntax. These skills help you steer it better — and debug when things go wrong.</p>
+
+  <div class="skills-grid">
+
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <div class="skill-icon">💻</div>
+        <div class="skill-badge badge-gamechanger">Game Changer</div>
+      </div>
+      <div class="skill-name">Basic Terminal Commands</div>
+      <div class="skill-why">cd, ls, mkdir — you'll use these every session. Without them, you can't navigate your own files or run Claude Code itself.</div>
+      <a class="skill-link" href="https://www.learnenough.com/command-line-tutorial" target="_blank" rel="noopener">Learn Enough Command Line</a>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <div class="skill-icon">🌐</div>
+        <div class="skill-badge badge-worthlearning">Worth Learning</div>
+      </div>
+      <div class="skill-name">How HTML/CSS Works</div>
+      <div class="skill-why">Knowing that HTML is structure and CSS is style lets you give Claude precise instructions and understand what it gives back.</div>
+      <a class="skill-link" href="https://www.internetingishard.com" target="_blank" rel="noopener">Interneting Is Hard</a>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <div class="skill-icon">⚙️</div>
+        <div class="skill-badge badge-worthlearning">Worth Learning</div>
+      </div>
+      <div class="skill-name">JavaScript Fundamentals</div>
+      <div class="skill-why">Variables, functions, arrays — enough to understand what Claude writes and catch obvious bugs before they become real problems.</div>
+      <a class="skill-link" href="https://javascript.info" target="_blank" rel="noopener">javascript.info</a>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <div class="skill-icon">🔐</div>
+        <div class="skill-badge badge-gamechanger">Game Changer</div>
+      </div>
+      <div class="skill-name">Git Basics</div>
+      <div class="skill-why">Save your work before every big change. One git commit means a broken Claude output can be undone in 10 seconds instead of starting over.</div>
+      <a class="skill-link" href="https://rogerdudler.github.io/git-guide/" target="_blank" rel="noopener">Git — The Simple Guide</a>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <div class="skill-icon">🔌</div>
+        <div class="skill-badge badge-worthlearning">Worth Learning</div>
+      </div>
+      <div class="skill-name">How APIs Work</div>
+      <div class="skill-why">Understanding requests and JSON means you can connect Claude's code to real data sources — weather, Spotify, your own database.</div>
+      <a class="skill-link" href="https://www.postman.com/api-fundamentals" target="_blank" rel="noopener">Postman API Fundamentals</a>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <div class="skill-icon">🔍</div>
+        <div class="skill-badge badge-gamechanger">Game Changer</div>
+      </div>
+      <div class="skill-name">Chrome DevTools</div>
+      <div class="skill-why">Right-click → Inspect. The Console tab shows errors in red. Paste that error into Claude and it almost always knows exactly what's wrong.</div>
+      <a class="skill-link" href="https://developer.chrome.com/docs/devtools/overview/" target="_blank" rel="noopener">Chrome DevTools Docs</a>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <div class="skill-icon">🐍</div>
+        <div class="skill-badge badge-nicetoknow">Nice to Know</div>
+      </div>
+      <div class="skill-name">Python Basics</div>
+      <div class="skill-why">Unlocks backend work — data scripts, Flask apps, automations. Worth learning once you've built a few front-end projects.</div>
+      <a class="skill-link" href="https://www.learnpython.org" target="_blank" rel="noopener">learnpython.org</a>
+    </div>
+
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <div class="skill-icon">⚛️</div>
+        <div class="skill-badge badge-nicetoknow">Nice to Know</div>
+      </div>
+      <div class="skill-name">React Fundamentals</div>
+      <div class="skill-why">Components, props, state — helpful once you're building apps with real interactivity. Not needed for your first 10 projects.</div>
+      <a class="skill-link" href="https://react.dev/learn" target="_blank" rel="noopener">Official React Docs</a>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-divider" style="max-width:960px;margin:0 auto;" />
+
+<!-- SECTION 4: GOLDEN RULES -->
+<section id="rules" style="padding-top:72px;padding-bottom:72px;">
+  <div class="rules-section">
+    <div class="section-label">Section 4</div>
+    <h2 style="color:var(--white);">Golden Rules</h2>
+    <p class="section-sub">Six habits that separate people who get stuck from people who ship. Print this and keep it nearby.</p>
+
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-num">1</div>
+        <div class="rule-text"><strong>Start a new chat for every new project.</strong> Old context from a different project confuses Claude and wastes your token budget.</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">2</div>
+        <div class="rule-text"><strong>Build in phases.</strong> Ask for Phase 1 only, test it, then ask for Phase 2. Never describe the whole app at once.</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">3</div>
+        <div class="rule-text"><strong>Paste the exact error message.</strong> When something breaks, copy the full red error text from the console and send it verbatim.</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">4</div>
+        <div class="rule-text"><strong>Ask Claude to explain anything you don't understand.</strong> "Explain this code to me like I'm a beginner" is a completely valid prompt.</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">5</div>
+        <div class="rule-text"><strong>Save working versions before big changes.</strong> Use git commit (or just duplicate the file) before asking Claude to refactor or redesign.</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">6</div>
+        <div class="rule-text"><strong>Token tip: start fresh when things get messy.</strong> Copy just the relevant code into a new chat instead of continuing a broken 50-message thread.</div>
+      </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">🖨 Print this checklist</button>
+  </div>
+</section>
+
+<hr class="section-divider" style="max-width:960px;margin:0 auto;" />
+
+<!-- SECTION 5: CHALLENGES -->
+<section id="challenges">
+  <div class="section-label">Section 5</div>
+  <h2>Practice Challenges</h2>
+  <p class="section-sub">Three real mini-projects to try right now. Hit "Copy prompt" and paste it straight into Claude Code.</p>
+
+  <div class="challenges-grid">
+
+    <div class="challenge-card">
+      <div class="challenge-difficulty diff-easy">Easy</div>
+      <div class="challenge-title">Countdown Timer</div>
+      <div class="challenge-prompt-preview">"Build a countdown timer to my Wharton start date. Large display showing days, hours, minutes. Navy and gold design. Single index.html file."</div>
+      <button class="copy-btn" onclick="copyPrompt(this, `Build a countdown to my Wharton MBA start date of August 31, 2025. Show a large, beautiful countdown display with days, hours, minutes, and seconds remaining. Navy blue background with gold accent colors. Include a motivational tagline like 'The countdown is on.' Output as a single index.html file with inline CSS and JS. No frameworks, no dependencies.`)">
+        <span>📋</span> Copy prompt
+      </button>
+    </div>
+
+    <div class="challenge-card">
+      <div class="challenge-difficulty diff-medium">Medium</div>
+      <div class="challenge-title">Habit Tracker</div>
+      <div class="challenge-prompt-preview">"Build a habit tracker with a 7-day streak view. I can add habits, mark daily completions, and see streaks. Single HTML file."</div>
+      <button class="copy-btn" onclick="copyPrompt(this, `Build a habit tracker app as a single index.html file with inline CSS and JS. Features:
+- Add custom habits (text input + add button)
+- Each habit shows a 7-day grid (last 7 days) where I can click to mark a day complete
+- Show current streak count next to each habit
+- Clean card-based layout, mobile friendly
+- Data saved in localStorage so it persists on page reload
+No frameworks, no external dependencies.`)">
+        <span>📋</span> Copy prompt
+      </button>
+    </div>
+
+    <div class="challenge-card">
+      <div class="challenge-difficulty diff-hard">Hard</div>
+      <div class="challenge-title">MBA Flashcard App</div>
+      <div class="challenge-prompt-preview">"Build a flashcard app that quizzes me on MBA concepts. Flip cards, track score, include 20 starter cards on strategy and finance."</div>
+      <button class="copy-btn" onclick="copyPrompt(this, `Build a flashcard quiz app as a single index.html file with inline CSS and JS. Features:
+- Flip animation on cards (front = question, back = answer)
+- Include 20 starter cards covering MBA topics: Porter's Five Forces, NPV, WACC, BCG Matrix, CAPM, etc.
+- Track score: after flipping, user clicks 'Got it' or 'Review again'
+- Progress bar showing how many cards remain
+- Navy and gold color scheme, clean professional design
+- Shuffle button to randomize card order
+No frameworks. Data stored in JS array.`)">
+        <span>📋</span> Copy prompt
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Built with <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a> · A single index.html file · No build step required</p>
+</footer>
+
+<script>
+  function togglePrompt(btn, pairId, version) {
+    const pair = btn.closest('.prompt-pair');
+    const btns = pair.querySelectorAll('.toggle-btn');
+    btns.forEach(b => b.classList.remove('active-bad', 'active-good'));
+
+    pair.querySelectorAll('.prompt-version').forEach(v => v.classList.remove('active'));
+    document.getElementById(pairId + '-' + version).classList.add('active');
+
+    if (version === 'bad') btn.classList.add('active-bad');
+    else btn.classList.add('active-good');
+  }
+
+  function copyPrompt(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const original = btn.innerHTML;
+      btn.classList.add('copied');
+      btn.innerHTML = '<span>✓</span> Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = original;
+      }, 2000);
+    });
+  }
+
+  // Smooth active state for nav links on scroll
+  const sections = ['the-loop', 'prompts', 'skills', 'rules', 'challenges'];
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.style.color = '');
+        const activeLink = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
+        if (activeLink) activeLink.style.color = '#c9a84c';
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+</script>
+
+</body>
+</html>
