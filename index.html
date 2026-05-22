@@ -1319,6 +1319,149 @@ const PLAYBOOK = [
       }
     ]}
   ]
+},
+{
+  id:'pb-skills', icon:'⚡', title:'Master Claude\'s Built-in Skills', badge:'Power Move', badgeClass:'badge-blue', iconBg:'bg-blue',
+  tagline:'Slash commands like /init, /review, and /verify turn Claude Code from helpful into unstoppable. Learn the ones that matter.',
+  lessons:[
+    { title:'/init — Give Claude a memory', pages:[
+      { type:'info', heading:'Why every project should start with <span class="mono">/init</span>',
+        body:[
+          'When you open Claude Code in a new folder, it knows nothing about your project. It can read files one at a time, but it doesn\'t know your stack, your conventions, or how to run anything. The <strong>/init</strong> slash command fixes that by writing a <strong>CLAUDE.md</strong> file — a project-specific cheat sheet Claude reads every single session.',
+          'Think of CLAUDE.md as the onboarding doc for a new hire. Once it\'s there, you stop re-explaining "we use Vite, ports are 5175, the deploy command is X." Claude already knows.'
+        ],
+        steps:[
+          { title:'What /init does', desc:'Scans your project files, figures out the stack, finds entry points and scripts, and writes a CLAUDE.md at the project root summarizing all of it.' },
+          { title:'When to run it', desc:'Once, right after you create or clone a project. Re-run it whenever the project changes substantially (new framework, new deploy target, new conventions).' },
+          { title:'What you get', desc:'A markdown file Claude auto-loads in every future session. No more re-explaining the same setup details over and over.' }
+        ],
+        keyPoint:{ body:'Sessions are stateless — Claude forgets everything between them. CLAUDE.md is how you give it a memory that survives.' }
+      },
+      { type:'terminal', heading:'Run <span class="mono">/init</span> in a real project',
+        intro:'Open Claude Code in your project folder, then type <code>/init</code> and press Enter. Claude reads the codebase and writes CLAUDE.md for you. Here\'s what a typical run looks like in a Vite + React project.',
+        lines:[
+          { prompt:true, text:'cd ~/Desktop/Projects/Working/my-app' },
+          { prompt:true, text:'claude' },
+          { prompt:false, text:'Claude Code v2.x — ready.' },
+          { prompt:true, text:'/init' },
+          { prompt:false, text:'Reading package.json, src/, vite.config.ts ...' },
+          { prompt:false, text:'Detected: React 18 + TypeScript + Vite + Tailwind v4' },
+          { prompt:false, text:'Entry point: src/main.tsx · Dev: npm run dev (port 5173)' },
+          { prompt:false, text:'Writing CLAUDE.md ... done.' }
+        ],
+        explain:'<strong>What to do next:</strong> open the generated <code>CLAUDE.md</code>, read it top to bottom, and edit anything that\'s wrong or missing. Claude\'s first draft is a great skeleton, but you know things it can\'t infer — like "always run lint before pushing" or "the API key lives in Vercel, not .env." Add those manually and Claude will follow them forever after.'
+      },
+      { type:'code', heading:'A good CLAUDE.md beats a generic one', lang:'markdown',
+        code:'# CLAUDE.md\n\n## Running this project\nDev: `PATH=/opt/homebrew/bin:$PATH npm run dev` (port 5175)\nBuild: `npm run build` · Lint: `npm run lint`\n\n## Stack\nReact 19 + TS + Vite 8 + Tailwind v4. No PostCSS — theme lives in `@theme {}` inside `src/index.css`.\n\n## Conventions\n- All state lives in `localStorage` via the `useCredits` hook in `src/hooks/`.\n- Pure logic goes in `src/lib/`, never in components.\n- Prefix unused params with `_` (strict mode is on).\n\n## Deploy\nPush to `main` → Vercel auto-deploys. `ANTHROPIC_API_KEY` must be set in Vercel env vars.',
+        explain:'Notice how specific this is — port numbers, the exact PATH workaround, where state lives, how to deploy. Generic CLAUDE.md (just "this is a React app") is almost useless. Spend 10 minutes editing the /init output to add the stuff only you know, and Claude will save you that 10 minutes back on every future session.'
+      }
+    ]},
+    { title:'/review and /security-review — Catch problems before you ship', pages:[
+      { type:'info', heading:'Two review skills, two different jobs',
+        body:[
+          'Once you\'ve built something, the question is always "is this actually ready?" Claude Code ships with built-in review commands that read your changes critically — like a senior engineer doing a PR review, but free and instant.',
+          'Use them before every deploy. They catch the bugs you\'d ship at 11pm and find out about at 9am.'
+        ],
+        steps:[
+          { title:'/review', desc:'Reviews a pull request — quality, correctness, naming, edge cases, missing tests. Best used right before you ask someone else to look at the code.' },
+          { title:'/code-review', desc:'Reviews changed code in your current branch for reuse, quality, and efficiency, and offers to fix the issues it finds. Use this on your own branch before opening a PR.' },
+          { title:'/security-review', desc:'Scans the pending changes for security vulnerabilities — injection risks, leaked secrets, auth bugs, OWASP-style problems. Run it on anything touching auth, user input, or external APIs.' }
+        ],
+        keyPoint:{ body:'/code-review tells you what to fix. /security-review tells you what could get you hacked. Run both before merging anything important.' }
+      },
+      { type:'terminal', heading:'A real <span class="mono">/code-review</span> session',
+        intro:'Make some changes, then run <code>/code-review</code>. Claude reads the diff, looks for duplicated logic, missing error handling, naming issues, and offers fixes you can accept inline.',
+        lines:[
+          { prompt:true, text:'git status' },
+          { prompt:false, text:'modified: src/lib/credits.ts, src/hooks/useCredits.ts' },
+          { prompt:true, text:'/code-review' },
+          { prompt:false, text:'Reading diff (2 files, +84 −12) ...' },
+          { prompt:false, text:'Found 3 issues:' },
+          { prompt:false, text:'  1. Duplicate date math in useCredits.ts:42 and credits.ts:18' },
+          { prompt:false, text:'  2. saveState() called twice in addCredit() — second call is a no-op' },
+          { prompt:false, text:'  3. Missing null check on benefit.amount in calcMonthly()' },
+          { prompt:false, text:'Apply all fixes? (y/n)' },
+          { prompt:true, text:'y' },
+          { prompt:false, text:'✓ Fixed. Run tests before committing.' }
+        ],
+        explain:'<strong>Tip:</strong> always run <code>/code-review</code> <em>before</em> committing, not after. Catching issues in unstaged changes means you can fix them in the same commit instead of piling up follow-up "address review feedback" commits.'
+      },
+      { type:'info', heading:'When to run <span class="mono">/security-review</span>',
+        body:[
+          'Security review isn\'t for every change. Run it when your diff touches anything that handles user input, secrets, auth, or external requests. It\'s a focused scan, not a general code review.',
+          'A good habit: any project that calls the Claude API, reads form data, or talks to a database gets a security-review pass before its first deploy.'
+        ],
+        breakdown:[
+          { cmd:'Trigger it:', desc:'Type <code>/security-review</code> in Claude Code. It reads pending changes on the current branch and reports anything risky — no extra arguments needed.' },
+          { cmd:'Common findings:', desc:'Hardcoded API keys, missing input sanitization, secrets in committed files, broken CORS, server endpoints that leak data.' },
+          { cmd:'Fix it together:', desc:'After the report, say: "Fix issues 1 and 3, leave #2 for now — I\'ll handle that in a separate PR." Claude will apply the fixes inline.' }
+        ],
+        tip:{ label:'Don\'t skip after Tier 2', body:'The moment you add an API key or any backend code, you\'ve added attack surface. <code>/security-review</code> takes 30 seconds and finds the obvious mistakes — like committing your .env file — that you don\'t want to learn about the hard way.' }
+      }
+    ]},
+    { title:'/verify, /deploy-and-share, and the rest', pages:[
+      { type:'info', heading:'Close the loop with <span class="mono">/verify</span>',
+        body:[
+          'Writing code and confirming code works are two different things. <strong>/verify</strong> launches your app, drives it like a real user would, and reports back whether the change actually does what you asked for.',
+          'This is the difference between "Claude says it\'s done" and "Claude saw it working with its own eyes." Use it any time a change is observable in the browser — UI tweaks, new features, bug fixes you can click to confirm.'
+        ],
+        steps:[
+          { title:'What it does', desc:'Starts the dev server, takes a screenshot or interaction trace, checks for console errors, and reports whether the feature behaves correctly.' },
+          { title:'When to use it', desc:'Right after Claude says "done" on anything visual. Especially good after UI changes, form work, or bug fixes — the kind of thing a passing test suite won\'t actually catch.' },
+          { title:'What it returns', desc:'A pass/fail + screenshot or DOM snapshot. If it fails, Claude can dig in, find the bug, fix it, and re-verify — all in one loop.' }
+        ],
+        keyPoint:{ body:'A green test suite means the code compiles. <code>/verify</code> means the feature actually works. They\'re not the same thing.' }
+      },
+      { type:'terminal', heading:'<span class="mono">/deploy-and-share</span> in action',
+        intro:'When you\'re happy with a project, <code>/deploy-and-share</code> handles the whole publish step in one command: creates a new public GitHub repo, pushes the code, deploys to Vercel, and hands you the live URL.',
+        lines:[
+          { prompt:true, text:'/deploy-and-share' },
+          { prompt:false, text:'Project: amex-credits-maximizer' },
+          { prompt:false, text:'Creating GitHub repo aidanlconnolly/amex-credits-maximizer ...' },
+          { prompt:false, text:'✓ Repo created. Pushing main ...' },
+          { prompt:false, text:'✓ Pushed. Linking to Vercel ...' },
+          { prompt:false, text:'✓ Vercel project created. Building ...' },
+          { prompt:false, text:'✓ Deployed: https://amex-credits-maximizer.vercel.app' },
+          { prompt:false, text:'Live URL ready. Share it.' }
+        ],
+        explain:'<strong>Before you run it:</strong> make sure you\'re inside the project folder and that <code>gh</code> + <code>vercel</code> are both already logged in (you set that up in the previous lessons). Otherwise the skill will pause and ask you to authenticate first.'
+      },
+      { type:'info', heading:'The full slash-command toolbox',
+        body:[
+          'You don\'t need to memorize every skill — just know which ones exist so you can reach for them when the moment is right. Here are the ones that matter most early on.'
+        ],
+        breakdown:[
+          { cmd:'/init', desc:'Generate the CLAUDE.md memory file. First thing in every new project.' },
+          { cmd:'/code-review', desc:'Review your own changes before committing. Catches duplication, dead code, missed cases.' },
+          { cmd:'/review', desc:'Review an open pull request — use this when collaborating or before merging your own PRs.' },
+          { cmd:'/security-review', desc:'Scan pending changes for security issues. Run before any deploy that touches auth, input, or secrets.' },
+          { cmd:'/verify', desc:'Actually run the app and confirm a change works. Don\'t take "done" at face value.' },
+          { cmd:'/deploy-and-share', desc:'GitHub repo + Vercel deploy + live URL, all in one command.' },
+          { cmd:'/loop', desc:'Re-run a prompt on a timer (e.g. "every 5 min check the build"). Great for watching deploys or polling status.' }
+        ],
+        tip:{ label:'Skills vs typing prompts', body:'Slash commands are just well-tuned prompts Anthropic ships for common workflows. You can always type the request manually — but the skill version has been tested across thousands of users, so it works more reliably. Reach for the skill first, free-form prompt only when no skill fits.' }
+      },
+      { type:'quiz', heading:'Skills check',
+        questions:[
+          { q:'You just cloned a new project. What\'s the first slash command to run?',
+            options:['<code>/deploy-and-share</code>','<code>/init</code>','<code>/verify</code>','<code>/security-review</code>'],
+            correct:1,
+            fb:'<code>/init</code> generates CLAUDE.md so Claude understands the project from now on. Run it first — every other skill works better when the project memory is in place.'
+          },
+          { q:'You just fixed a UI bug. The unit tests still pass. What should you do before declaring victory?',
+            options:['Push to main immediately — green tests are enough','Run <code>/verify</code> to confirm the actual UI behaves correctly','Re-run the linter','Open a PR and let a teammate decide'],
+            correct:1,
+            fb:'Passing tests prove the code compiles and the logic holds, but they don\'t prove the user-facing behavior is right. <code>/verify</code> drives the real app like a user would and catches the bugs tests can\'t see.'
+          },
+          { q:'You\'re about to deploy a project that calls the Claude API and accepts user input. Which skill is non-negotiable?',
+            options:['<code>/init</code>','<code>/loop</code>','<code>/security-review</code>','<code>/deploy-and-share</code>'],
+            correct:2,
+            fb:'API keys + user input = attack surface. <code>/security-review</code> takes 30 seconds and catches the obvious problems (leaked keys, missing sanitization) you absolutely don\'t want to learn about from users.'
+          }
+        ]
+      }
+    ]}
+  ]
 }
 ];
 
