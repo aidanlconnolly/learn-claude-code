@@ -457,8 +457,8 @@ const SKILLS = [
         tip:{ label:'Right-click shortcut', body:'Right-click any element in the browser → Inspect. Chrome shows you the exact class names. Copy one and use it in your next Claude prompt.' }
       },
       { type:'quiz', heading:'Quick Check', questions:[
-        { q:'Claude created a <div class="hero">. What CSS selector targets it?', options:['div {}','hero {}','.hero {}','#hero {}'], correct:2, fb:'.hero {} — the dot means "class". Classes are the most common selector Claude uses.' },
-        { q:'Your card has text squished against its edges. Which CSS property adds space inside the card border?', options:['margin','padding','border','width'], correct:1, fb:'padding adds space inside the border. margin adds space outside.' }
+        { q:'Claude created a <code>&lt;div class="hero"&gt;</code>. What CSS selector targets it?', options:['div {}','hero {}','.hero {}','#hero {}'], correct:2, fb:'.hero {} — the dot means "class". Classes are the most common selector Claude uses.' },
+        { q:'Your card has text squished against its edges. Which CSS property adds space <em>inside</em> the card border?', options:['margin','padding','border','width'], correct:1, fb:'padding adds space inside the border. margin adds space outside.' }
       ]}
     ]}
   ]
@@ -1778,7 +1778,7 @@ function nextQuizQuestion() {
   quizState.answered = false;
   const q = questions[quizState.qIdx];
   document.getElementById('quiz-prog').textContent = `Question ${quizState.qIdx + 1} of ${questions.length}`;
-  document.getElementById('quiz-q').textContent = q.q;
+  document.getElementById('quiz-q').innerHTML = q.q;
   document.getElementById('quiz-opts').innerHTML = q.options.map((o, i) =>
     `<button class="qopt" onclick="answerQuiz(${i})">${o}</button>`).join('');
   document.getElementById('quiz-fb').className = 'quiz-fb';
