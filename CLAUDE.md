@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Running the project
 
-Open `index.html` directly in a browser — no server, no build step. The archived previous version is `index_v1_archive.html`.
+Open `index.html` directly in a browser — no server, no build step. The archived previous version is `index_v1_archive.html`. (A preview-server entry `learn-claude-code` → port 5500 also exists in the workspace `.claude/launch.json`.)
 
 ## Architecture
 
-Everything lives in a single `index.html` (~1700 lines). The file is divided into three logical sections:
+Everything lives in a single `index.html` (~2600 lines). The file is divided into three logical sections:
 
 **CSS** — all styles are inline in `<style>`. Two layout modes are styled independently: `#roadmap-view` (the skill path) and `#lesson-view` (the paginated lesson player). The color system uses CSS variables (`--navy`, `--gold`, `--green`, etc.).
 
