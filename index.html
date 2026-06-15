@@ -1462,6 +1462,726 @@ const PLAYBOOK = [
       }
     ]}
   ]
+},
+{
+  id:'pb-data', icon:'🗄️', title:'Add a Real Database & Login', badge:'Level Up', badgeClass:'badge-blue', iconBg:'bg-blue',
+  tagline:'Graduate from "saved in this browser" to a real backend with accounts. The exact stack I use on every full app — Turso + Drizzle + per-user auth.',
+  lessons:[
+    { title:'Beyond localStorage', pages:[
+      { type:'info', heading:'Where does your app\'s data actually live?',
+        body:[
+          'Tier 1 and Tier 2 apps store data in <code>localStorage</code> — a little box inside each visitor\'s browser. It\'s free, instant, and needs zero setup. That\'s why the finance tracker, the PGA picks, and the Amex maximizer all use it: the data is already private, because it never leaves your machine.',
+          'But localStorage has hard limits. The data is stuck on one device — open the app on your phone and it\'s empty. Clear your browser cache and it\'s gone. And there\'s no way for two people to share the same data, or for you to see it from anywhere. The moment you want any of those things, you\'ve outgrown the browser and need a <strong>real database</strong>.'
+        ],
+        steps:[
+          { title:'localStorage is enough when', desc:'The data only matters to one person on one device, and losing it would be annoying but not catastrophic. Personal trackers, single-player games, draft state.' },
+          { title:'You need a real database when', desc:'Data must survive across devices, be shared between users, or be something you\'d be upset to lose. Anything with logins, anything multi-user, anything you\'d call "my account."' },
+          { title:'The tell-tale prompt', desc:'The day you ask "can I log in on my laptop and see the same stuff as my phone?" — that\'s the day you need a backend.' }
+        ],
+        keyPoint:{ body:'localStorage = data trapped in one browser. A database = data that lives on a server and follows you everywhere. Don\'t add a database until you actually need one of those things — it\'s real complexity.' }
+      },
+      { type:'info', heading:'Pick your backend',
+        body:[
+          'There are three backends worth knowing as a beginner. They trade simplicity for power. For the apps I build, I default to <strong>Turso</strong> — it\'s SQLite in the cloud, dead simple, and has a generous free tier.'
+        ],
+        breakdown:[
+          { cmd:'Turso (libSQL):', desc:'SQLite that lives in the cloud. What I actually use on every Next.js app. Tiny, fast, free to start, and you can run a local <code>file:local.db</code> copy for development. Pairs perfectly with Drizzle (next lesson).' },
+          { cmd:'Supabase (Postgres):', desc:'The popular "Firebase alternative" — a full Postgres database plus built-in auth, file storage, and auto-generated APIs. More batteries included than Turso, more to learn. Reach for it if you want auth + storage handed to you.' },
+          { cmd:'Vercel KV:', desc:'A simple key-value store (think one big shared dictionary). Great for tiny shared state — a leaderboard, a vote count — without a full database. The Stadium Run and penalty-shootout apps use it.' }
+        ],
+        tip:{ label:'How to choose', body:'Need rows, columns, and relationships (users, items, scores)? → a database (Turso or Supabase). Just need to stash a handful of shared values? → Vercel KV. Want auth + storage done for you and don\'t mind a bigger tool? → Supabase.' }
+      },
+      { type:'info', heading:'The prompt that adds a backend',
+        body:[
+          'You don\'t set up a database by hand. You describe what you want stored and let Claude scaffold the schema, the connection, and the queries. Be specific about the shape of your data — that\'s the part Claude can\'t guess.'
+        ],
+        breakdown:[
+          { cmd:'Add Turso + Drizzle:', desc:'"Add a real database to this app using Turso (libSQL) and Drizzle ORM. I want to store [describe your data: e.g. tasks with a title, due date, and done flag]. Set up the schema, the db connection, and a local file:local.db for development. Walk me through getting a Turso URL and token."' },
+          { cmd:'Migrate off localStorage:', desc:'"This app currently stores everything in localStorage. Move it to the Turso database we just set up — keep the same features working, just swap the storage layer underneath."' },
+          { cmd:'If you prefer Supabase:', desc:'"Set this project up with Supabase instead. Create the table for [your data], wire up the client, and show me which environment variables I need to add in Vercel."' }
+        ],
+        keyPoint:{ body:'The schema — the list of tables and columns — is the one thing only you know. Spell it out in plain English and Claude builds the rest. Get the shape right up front; changing it later means a migration.' }
+      }
+    ]},
+    { title:'Drizzle + Turso: your data layer', pages:[
+      { type:'info', heading:'Drizzle = type-safe SQL in TypeScript',
+        body:[
+          'A database stores rows. <strong>Drizzle</strong> is the translator between your TypeScript code and those rows — an ORM (Object-Relational Mapper). You describe your tables once in a <code>schema.ts</code> file, and Drizzle gives you autocomplete and type-checking on every query, so a typo becomes a red squiggle instead of a 2am crash.',
+          'You almost never write raw SQL. You write <code>db.select().from(items)</code> and Drizzle generates the SQL for you — correctly, every time.'
+        ],
+        steps:[
+          { title:'schema.ts', desc:'One file that defines every table and column. The single source of truth for your data shape.' },
+          { title:'db:push', desc:'One command that reads schema.ts and creates/updates the actual tables in Turso to match. This is a "migration."' },
+          { title:'Queries', desc:'Type-safe functions — select, insert, update, delete — that read and write rows. Autocomplete knows your columns.' }
+        ]
+      },
+      { type:'code', heading:'A real Drizzle schema', lang:'lib/db/schema.ts',
+        code:`<span class="cm">// Each table is defined once, in TypeScript.</span>
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+
+<span class="cm">// One row per saved item, owned by a user</span>
+export const items = sqliteTable("items", {
+  id:        text("id").primaryKey(),
+  userId:    text("user_id").notNull(),   <span class="cm">// the wall between users</span>
+  title:     text("title").notNull(),
+  amount:    integer("amount").notNull(),
+  createdAt: text("created_at").notNull(),
+});`,
+        explain:'This is the exact pattern my real apps use (PeOps-Prep, Foundry, behavioral-prep). Notice <code>userId</code> on every per-user table — that one column is what keeps your data separate from everyone else\'s once you add logins. <code>text</code>, <code>integer</code>, and <code>real</code> are the column types; <code>.notNull()</code> means the column is required.'
+      },
+      { type:'terminal', heading:'Push the schema to the database',
+        intro:'After Claude writes <code>schema.ts</code>, one command makes the real database match it. You run this whenever you add or change a table. <code>node</code> lives at <code>/opt/homebrew/bin</code> on a Mac, so the PATH prefix is there to make <code>npm</code> findable.',
+        lines:[
+          { prompt:true, text:'PATH=/opt/homebrew/bin:$PATH npm run db:push' },
+          { prompt:false, text:'Reading schema from lib/db/schema.ts ...' },
+          { prompt:false, text:'[✓] Pulling schema from database...' },
+          { prompt:false, text:'Changes detected: + table "items" (5 columns)' },
+          { prompt:false, text:'Applying changes to Turso ...' },
+          { prompt:false, text:'[✓] Changes applied. Database is in sync.' }
+        ],
+        explain:'<strong>For local development</strong> you can point at a file instead of the cloud: set <code>TURSO_DATABASE_URL=file:local.db</code> and you get a real database in a single file on your Mac — no internet needed. When you deploy, you swap in the real Turso URL + auth token via Vercel\'s environment variables. <strong>If db:push fails</strong>, paste the error to Claude — it\'s almost always a missing env var or a column type mismatch it can fix in seconds.'
+      }
+    ]},
+    { title:'Add per-user login', pages:[
+      { type:'info', heading:'A shared database needs walls',
+        body:[
+          'Here\'s the catch nobody warns you about: the instant your data moves from localStorage to a shared server, it stops being private. Everyone who opens the app now reads from the <em>same</em> database. Without logins, your data and a stranger\'s data are in one pile.',
+          'Authentication ("auth") is the wall. Each person makes an account, logs in, and from then on every query is scoped to <em>their</em> <code>userId</code>. You only need this once you have a shared backend — pure-localStorage apps are already private and need none of it.'
+        ],
+        keyPoint:{ body:'No login = everyone shares one bucket of data. The moment you have a real database AND more than one user, you need auth. That\'s the whole reason it exists.' }
+      },
+      { type:'info', heading:'The auth pattern I reuse everywhere',
+        body:[
+          'Every one of my full apps (the tutors, Foundry, PeOps-Prep, behavioral-prep) uses the same email/password setup. It\'s boring on purpose — boring auth is safe auth. You don\'t build this from scratch; Claude scaffolds it.'
+        ],
+        steps:[
+          { title:'Passwords hashed with bcrypt', desc:'You never store the actual password — only a scrambled "hash." Even if the database leaks, the passwords are unreadable. bcryptjs handles this.' },
+          { title:'Sessions signed with a JWT', desc:'After login, the server hands back a signed token (a JWT, via the jose library) proving "this is user X." The browser sends it with each request. AUTH_SECRET is the key that signs it — keep it secret.' },
+          { title:'A route guard redirects strangers', desc:'A small file (proxy.ts) checks for a valid session on protected pages. No session → bounced to /login. This is the wall, enforced automatically.' },
+          { title:'Every query scoped to the user', desc:'Each database query filters by the logged-in userId, so person A literally cannot fetch person B\'s rows.' }
+        ]
+      },
+      { type:'terminal', heading:'Scaffold auth in one shot',
+        intro:'I keep a script (<code>_scripts/add-auth.sh</code>) that drops the whole auth setup into any Next.js app — but you can just ask Claude to do the same thing. It installs the libraries, generates your AUTH_SECRET, and writes the login, register, and account pages.',
+        lines:[
+          { prompt:true, text:'./_scripts/add-auth.sh' },
+          { prompt:false, text:'Installing jose + bcryptjs ...' },
+          { prompt:false, text:'Generating AUTH_SECRET → .env.local' },
+          { prompt:false, text:'+ lib/auth.ts  (session create/read/delete)' },
+          { prompt:false, text:'+ proxy.ts     (route guard → /login)' },
+          { prompt:false, text:'+ app/login, app/register, app/account pages' },
+          { prompt:false, text:'Done. Now: add a userId column to each table.' }
+        ],
+        explain:'The script does the app-agnostic 80%. What\'s left is the part only you know: add a <code>users</code> table and a <code>userId</code> column to every per-user table, then scope each query to the logged-in user. <strong>The prompt to finish it:</strong> "Add a users table and a userId column to my existing tables, put requireAuth() at the top of every server action, and scope all queries to the current user. Write a migration that preserves my existing rows."'
+      },
+      { type:'quiz', heading:'Backend check',
+        questions:[
+          { q:'Your app stores data in localStorage. A friend opens it on their phone and sees nothing of yours. Why?',
+            options:['The app is broken','localStorage is per-browser — your data never left your device','You forgot to deploy','The database is down'],
+            correct:1,
+            fb:'localStorage lives inside one browser on one device. Nothing is shared and nothing is on a server. That\'s great for privacy but useless the moment you want the same data across devices or users — which is when you move to a real database.'
+          },
+          { q:'You\'ve moved to a shared Turso database. What MUST you add before real users sign up?',
+            options:['A faster server','Authentication, so each user\'s data is walled off by userId','More localStorage','A second database'],
+            correct:1,
+            fb:'A shared database means everyone reads from the same pile. Auth + a userId column on every table is the wall that keeps person A from seeing person B\'s rows. Without it, all data is effectively public to every visitor.'
+          },
+          { q:'What does Drizzle\'s schema.ts file give you?',
+            options:['The live data itself','A single, type-checked definition of your tables and columns','Your API keys','The deployed URL'],
+            correct:1,
+            fb:'schema.ts is the source of truth for your data shape. Define tables once, run db:push to make the real database match, and get autocomplete + type-checking on every query so typos fail at edit-time, not in production.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-ios', icon:'📱', title:'Ship an iOS App', badge:'App Store', badgeClass:'badge-gold', iconBg:'bg-gold',
+  tagline:'The battle-tested runbook from actually shipping an app to the App Store. The web-app trap, the EAS build pipeline, and the 8 gotchas that cause rejections.',
+  lessons:[
+    { title:'The App Store reality check', pages:[
+      { type:'info', heading:'Your web app cannot go on the App Store',
+        body:[
+          'This is the hard lesson everyone learns the painful way: <strong>a Next.js, Vite, or vanilla-HTML app cannot be submitted to the App Store.</strong> Apple rejects "thin web wrappers" — apps that are just a website in a shell. The App Store wants a real native binary.',
+          'To get on the App Store you build with <strong>Expo / React Native</strong> instead — a framework that compiles your JavaScript UI into an actual native iOS app. It\'s the same language you already know (JS/React), just a different toolkit. Everything else in this lesson assumes an Expo app.'
+        ],
+        keyPoint:{ body:'Check before you start: the project needs an app.json and "expo" in its package.json. If it\'s a web framework, there is no shortcut — you rebuild the UI in Expo first. Apple has rejected the shortcut for years.' }
+      },
+      { type:'info', heading:'Your three options for "I want this on a phone"',
+        body:[
+          'Not every app needs to be on the App Store. Be honest about which path you actually need before committing to the work.'
+        ],
+        breakdown:[
+          { cmd:'Rebuild in Expo:', desc:'The real path to the App Store. Rebuild the UI in Expo/React Native, then follow this playbook. Most work, but it\'s the only way to get the App Store listing, push notifications, and native feel.' },
+          { cmd:'Ship a PWA:', desc:'Keep your web app as-is and make it an installable Progressive Web App — users tap "Add to Home Screen" and it behaves like an app. No App Store, no $99 fee, no review. Often all you actually need.' },
+          { cmd:'Native wrapper (Capacitor):', desc:'Wraps your web app in a native shell. Tempting, but Apple frequently rejects these as thin wrappers — so it\'s a coin flip, not a plan.' }
+        ],
+        tip:{ label:'One-time prerequisites', body:'The App Store route needs an <strong>Apple Developer Program</strong> membership ($99/year) and a free <strong>Expo account</strong> (expo.dev/signup). No way around the $99 — that\'s Apple\'s gate.' }
+      },
+      { type:'info', heading:'The prompt to start an Expo app',
+        body:[
+          'If you\'re committing to the App Store, start the project in Expo from day one — porting a finished web app later is more work than building it native from the start.'
+        ],
+        breakdown:[
+          { cmd:'New Expo app:', desc:'"Create a new Expo (React Native) app for iOS called [name]. Set up TypeScript, file-based routing with expo-router, and a basic tab navigation with [list your screens]. Use app.json with a bundle identifier com.[name].app."' },
+          { cmd:'Reuse my web app\'s logic:', desc:'"I have this feature working in my web app: [paste]. Rebuild it as a React Native screen — same behavior, native components instead of HTML divs."' }
+        ],
+        keyPoint:{ body:'On a Mac, node and npx live at /opt/homebrew/bin and aren\'t on your PATH by default — every Expo/EAS command gets prefixed with PATH=/opt/homebrew/bin:$PATH. Claude knows this; just don\'t be surprised by the prefix.' }
+      }
+    ]},
+    { title:'Build & submit with EAS', pages:[
+      { type:'info', heading:'EAS builds your app in the cloud',
+        body:[
+          'You don\'t need Xcode or a Mac build farm. <strong>EAS</strong> (Expo Application Services) compiles your app on Expo\'s servers and can ship it straight to TestFlight. The whole pipeline is three commands you run from your project folder.',
+          'The first build is interactive — it asks for your Apple ID, your 2FA code, and permission to auto-generate the signing certificates. After that, builds are completely hands-off.'
+        ],
+        steps:[
+          { title:'eas login + eas init', desc:'Logs into Expo and writes a projectId into your app.json. Run once per app.' },
+          { title:'eas build', desc:'Compiles the native binary in the cloud (~5–45 min depending on the free-tier queue).' },
+          { title:'--auto-submit', desc:'When the build finishes, EAS ships it to TestFlight automatically. No manual upload.' }
+        ]
+      },
+      { type:'terminal', heading:'The build pipeline',
+        intro:'Run these from the PROJECT ROOT, one line at a time. The EAS CLI is invoked as <code>npx eas-cli</code>.',
+        lines:[
+          { prompt:true, text:'npx eas-cli login' },
+          { prompt:false, text:'✓ Logged in as your-expo-username' },
+          { prompt:true, text:'npx eas-cli init' },
+          { prompt:false, text:'✓ Created project, wrote projectId to app.json' },
+          { prompt:true, text:'npx eas-cli build --profile production --platform ios --auto-submit' },
+          { prompt:false, text:'? Apple ID / 2FA ... ? Auto-generate signing credentials? Yes' },
+          { prompt:false, text:'Build queued ... building ... ✓ Build finished' },
+          { prompt:false, text:'✓ Submitted to App Store Connect (TestFlight)' }
+        ],
+        explain:'<strong>First build only:</strong> keep it interactive (no <code>--non-interactive</code>) so you can enter your Apple ID + 2FA and say "yes" to auto-generating the certificate and provisioning profile. Decline Push Notifications unless you\'re actually using native APNs. Once credentials exist, every future build can run fully hands-off with <code>--non-interactive --no-wait</code>.'
+      },
+      { type:'info', heading:'The #1 cause of rejection: env vars',
+        body:[
+          'This single mistake causes more App Store rejections than anything else, so it gets its own page. <strong>Cloud builds cannot see your <code>.env.local</code> file.</strong> They read environment variables from EAS only.',
+          'Forget this and your build ships with the backend OFF — login fails, the reviewer can\'t use the app, and Apple rejects it. The fix is to push every variable to EAS before building.'
+        ],
+        breakdown:[
+          { cmd:'Push a variable to EAS:', desc:'<code>npx eas-cli env:create --environment production --name EXPO_PUBLIC_API_URL --value "..." --visibility plaintext --type string</code> — repeat for each EXPO_PUBLIC_* var.' },
+          { cmd:'Verify they\'re there:', desc:'<code>npx eas-cli env:list production</code> before you build. And check the build log actually says the vars LOADED.' }
+        ],
+        keyPoint:{ body:'EAS env vars ≠ .env.local ≠ Vercel env vars. They are three separate places. The cloud build reads ONLY from EAS. Confirm the vars are pushed and the build log loaded them — every single time.' }
+      },
+      { type:'info', heading:'Pin the submit target',
+        body:[
+          'For <code>--auto-submit</code> to work, EAS needs to know which App Store listing to ship to. You create the app record in App Store Connect, copy its numeric Apple ID, and paste it into <code>eas.json</code>.'
+        ],
+        breakdown:[
+          { cmd:'In eas.json:', desc:'<code>"submit": { "production": { "ios": { "ascAppId": "&lt;numeric App Store ID&gt;" } } }</code> — without this, <code>--auto-submit</code> errors out after the build finishes (gotcha #6).' }
+        ],
+        tip:{ label:'Set ios.supportsTablet: false up front', body:'Unless you genuinely want an iPad app, set <code>ios.supportsTablet: false</code> in app.json before your first build. Leaving it true secretly forces Apple to demand 13" iPad screenshots — which you discover at the very last "Add for Review" step. Flipping it later requires a whole new build.' }
+      }
+    ]},
+    { title:'The App Store Connect gauntlet', pages:[
+      { type:'info', heading:'The listing + screenshots',
+        body:[
+          'Once the build lands in TestFlight, the rest happens in the App Store Connect web UI: filling out your listing and uploading screenshots. Apple is picky about exact pixel dimensions.'
+        ],
+        steps:[
+          { title:'App Information', desc:'Subtitle, category, Content Rights (No if you have no third-party creative content), Pricing → Free + all countries.' },
+          { title:'Version page', desc:'Description, keywords (≤100 chars total), support + marketing URLs, copyright.' },
+          { title:'App Review Info', desc:'A working reviewer login, a contact name, email, and — required — a phone number. Skip the phone and it bounces.' },
+          { title:'Screenshots', desc:'Apple requires 6.9" iPhone = exactly 1290×2796. Raw phone shots never match — resize them: <code>sips -z 2796 1290 *.png</code>. Never stretch an iPhone shot to iPad dimensions.' }
+        ]
+      },
+      { type:'info', heading:'The 8 gotchas (the gold)',
+        body:[
+          'These are the traps that cost real hours shipping a real app. Read them once now; they\'ll save you a rejection later.'
+        ],
+        breakdown:[
+          { cmd:'1. Run eas from the project folder', desc:'Not from your home directory (~). It reads app.json from the current folder.' },
+          { cmd:'2. EAS env vars ≠ local files', desc:'Cloud builds can\'t see .env.local. Missing vars = backend off = rejection. Confirm the build log loaded them.' },
+          { cmd:'3. Screenshots need exact dims', desc:'Raw iPhone shots never match. <code>sips -z 2796 1290</code> fixes the 6.9" requirement.' },
+          { cmd:'4. supportsTablet: true demands iPad shots', desc:'Set it false up front for iPhone-only. Discovered at "Add for Review" otherwise.' },
+          { cmd:'5. The reviewer account must really log in', desc:'Test it yourself against the LIVE backend. Demo/localStorage logins fail once the real backend is on — the #1 rejection cause.' },
+          { cmd:'6. --auto-submit needs ascAppId', desc:'Put the numeric App Store ID in eas.json or auto-submit errors after the build.' },
+          { cmd:'7. "Newer Build Available" lies', desc:'It compares upload time, not content. Verify the build number ATTACHED to the version, then submit through it.' },
+          { cmd:'8. The web UI hangs constantly', desc:'App Store Connect\'s SPA freezes. Re-navigate by URL to reset it, then click manually.' }
+        ]
+      },
+      { type:'info', heading:'Submit — and let the skill drive',
+        body:[
+          'Final step: confirm the correct build is attached to your version, declare App Privacy honestly, set the age rating, then <strong>Add for Review → Submit</strong>. Apple\'s review takes 1–3 days.',
+          'You don\'t have to memorize any of this. The entire runbook is the <code>/deploy-to-ios</code> slash command — Claude walks you through every step with the gotchas built in.'
+        ],
+        breakdown:[
+          { cmd:'Kick off the whole thing:', desc:'Type <code>/deploy-to-ios</code> in Claude Code from your Expo project folder. It checks app.json, pushes env vars to EAS, runs the build, and guides you through App Store Connect.' },
+          { cmd:'Hold your web deploy', desc:'If you have a website with an "App Store" badge, don\'t publish it until Apple actually RELEASES the app — the badge links to a dead page until then.' }
+        ],
+        keyPoint:{ body:'Almost everything is identical app-to-app. The only per-app variables are: bundle ID, name/subtitle/keywords/description, EXPO_PUBLIC_* vars, the App Store ID, screenshots, and the reviewer account. Nail those and the rest is mechanical.' }
+      },
+      { type:'quiz', heading:'App Store check',
+        questions:[
+          { q:'You built a great Next.js web app. Can you submit it to the App Store as-is?',
+            options:['Yes, just zip it up','No — Apple rejects web wrappers; you rebuild the UI in Expo/React Native','Yes, if you pay extra','Only on Android'],
+            correct:1,
+            fb:'Apple rejects thin web wrappers. The App Store needs a real native binary, which means rebuilding the UI in Expo/React Native. Your alternative is shipping a PWA (Add to Home Screen) with no App Store listing at all.'
+          },
+          { q:'Your EAS build succeeds but the reviewer says login is broken. The most likely cause?',
+            options:['The app is too big','Your environment variables weren\'t pushed to EAS — cloud builds can\'t read .env.local','Apple is having an outage','You used the wrong color scheme'],
+            correct:1,
+            fb:'Cloud builds read env vars from EAS only — never from your local .env.local. If you skip eas env:create, the build ships with the backend off, login fails, and Apple rejects it. This is the #1 rejection cause.'
+          },
+          { q:'Why set ios.supportsTablet: false before your first build?',
+            options:['It makes the app faster','iPhones don\'t support tablets','Leaving it true secretly requires 13" iPad screenshots you\'ll discover at the last step','It\'s required by law'],
+            correct:2,
+            fb:'supportsTablet: true forces Apple to demand iPad screenshots — and you find out at the final "Add for Review" step. Set it false up front for an iPhone-only app; flipping it later means a brand-new build.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-prompt', icon:'🎯', title:'Prompt Like a Pro', badge:'Force Multiplier', badgeClass:'badge-gray', iconBg:'bg-gray',
+  tagline:'The difference between fighting Claude and flying with it is how you ask. Spec-first prompting, steering mid-build, and the power patterns I lean on daily.',
+  lessons:[
+    { title:'Spec-first prompting', pages:[
+      { type:'info', heading:'Context is the whole game',
+        body:[
+          'The single biggest predictor of a good result is how much context you give up front. A vague prompt forces Claude to guess — at your stack, your data shape, your style — and every guess is a chance to build the wrong thing.',
+          'Think of yourself as the product manager, not the coder. Your job isn\'t to write code; it\'s to describe what "done" looks like clearly enough that there\'s nothing left to guess.'
+        ],
+        keyPoint:{ body:'Five extra minutes writing a complete prompt saves thirty minutes of "no, not like that." The most expensive prompts are the short, vague ones.' }
+      },
+      { type:'info', heading:'Vague vs. specific — the same request',
+        body:[
+          'Watch what specificity does. Both prompts ask for the same feature, but only one of them gets built right on the first try.'
+        ],
+        breakdown:[
+          { cmd:'❌ Vague:', desc:'"Add a way to track expenses."' },
+          { cmd:'✅ Specific:', desc:'"Add an expenses feature: a form with amount, category (dropdown: Food / Transport / Other), and date. Show all expenses in a list sorted newest-first, with a running total per category at the top. Store in the existing Turso db. Match the navy/gold styling already in the app."' }
+        ],
+        tip:{ label:'Why the second one wins', body:'The specific prompt answers every question Claude would otherwise guess: what fields, what categories, how to sort, where to store, how it looks. No guesses = no wrong turns = no back-and-forth.' }
+      },
+      { type:'info', heading:'The spec checklist',
+        body:[
+          'Before you hit enter on any "build me X" prompt, run through these five. You won\'t always need all of them, but the ones you skip are the ones Claude will guess at.'
+        ],
+        steps:[
+          { title:'What — the feature', desc:'Describe the behavior in plain English. What can the user do, and what happens when they do it?' },
+          { title:'Stack — the tools', desc:'"React + Vite + Tailwind," "vanilla HTML single file," "the existing Next.js app." This stops Claude from picking a stack you don\'t want.' },
+          { title:'Data — the shape', desc:'What fields, what types, where it\'s stored. The one thing Claude genuinely cannot infer.' },
+          { title:'Style — the look', desc:'Colors, layout, "match the existing design." Otherwise you get generic defaults.' },
+          { title:'Constraints — the guardrails', desc:'"No external dependencies," "keep the API key server-side," "don\'t touch the other files."' }
+        ]
+      }
+    ]},
+    { title:'Steering the build', pages:[
+      { type:'info', heading:'Plan first, then build',
+        body:[
+          'For anything bigger than a one-liner, ask Claude to <strong>plan before it codes</strong>. You review the plan — a list of files and changes — and approve it before a single line is written. Catching a wrong assumption in a plan costs one sentence; catching it after the code is written costs a rewrite.',
+          'In Claude Code you can enter Plan Mode (press Shift+Tab to cycle modes), or just say "make a plan first, don\'t write code yet."'
+        ],
+        breakdown:[
+          { cmd:'Trigger a plan:', desc:'"Before you write any code, lay out your plan: which files you\'ll create or change and what each change does. Wait for my OK."' },
+          { cmd:'Approve or redirect:', desc:'"Plan looks good except step 3 — don\'t add a new library, use the fetch we already have. Then go ahead."' }
+        ],
+        keyPoint:{ body:'The bigger the task, the more a plan pays off. For a sprawling feature, a 30-second plan review prevents Claude from building three files in the wrong direction.' }
+      },
+      { type:'info', heading:'Scope tightly, ship in small diffs',
+        body:[
+          'Claude works best on a tight scope. Two habits keep it focused: one project folder per session, and small, reviewable changes instead of giant ones.'
+        ],
+        steps:[
+          { title:'One folder = the sandbox', desc:'Always cd into your specific project folder before starting. That folder becomes the boundary — Claude won\'t wander into other projects.' },
+          { title:'Small diffs over big ones', desc:'"Add just the login form, nothing else yet" beats "build the whole auth system." Smaller changes are easier to review, verify, and undo if wrong.' },
+          { title:'Commit at checkpoints', desc:'Ask Claude to commit when something works. A clean commit is a save point you can always roll back to.' }
+        ],
+        tip:{ label:'When Claude over-reaches', body:'If a change touched more than you wanted, say: "That\'s more than I asked for — revert everything except the part that does X." Small scope is recoverable; a sprawling change is a mess to untangle.' }
+      },
+      { type:'info', heading:'Course-correct without starting over',
+        body:[
+          'When Claude goes sideways, you don\'t restart — you steer. The trick is to be specific about what\'s wrong and what right looks like, the same way you were specific in the original spec.'
+        ],
+        breakdown:[
+          { cmd:'Paste the actual error:', desc:'"This is failing. Here\'s the exact console error: [paste]. Diagnose and fix it." Never paraphrase an error — paste it verbatim.' },
+          { cmd:'Name the wrong assumption:', desc:'"You assumed the data is an array, but it\'s an object keyed by id. Adjust for that."' },
+          { cmd:'Redirect the approach:', desc:'"This works but it\'s overcomplicated. Rewrite it to use the existing useCredits hook instead of new state."' },
+          { cmd:'Verify before trusting:', desc:'"Run the app and confirm the form actually submits and the list updates — don\'t just tell me it should work."' }
+        ],
+        keyPoint:{ body:'"Done" from Claude means "the code is written," not "the feature works." Ask it to verify — run the app, click the button, check the console — before you believe it.' }
+      }
+    ]},
+    { title:'Power patterns', pages:[
+      { type:'info', heading:'Send out subagents for big jobs',
+        body:[
+          'For a large task — "audit every file for X," "explore how this whole app fits together" — Claude can spin up <strong>subagents</strong> that work in parallel and report back. You get the conclusion without drowning in the intermediate file dumps.',
+          'You rarely invoke these by hand. You just ask for the broad thing, and Claude fans the work out when it makes sense.'
+        ],
+        breakdown:[
+          { cmd:'Broad exploration:', desc:'"Explore this codebase and tell me how data flows from the form to the database — which files are involved." Claude reads widely and hands back a map.' },
+          { cmd:'Parallel audit:', desc:'"Check every component for places we call the API without error handling, and list them." Good for sweeps across many files at once.' }
+        ]
+      },
+      { type:'info', heading:'Automate the repetitive with <span class="mono">/loop</span> and schedules',
+        body:[
+          'Some work is "do this, then check again later." Two tools cover that: <code>/loop</code> repeats a prompt on a timer in your current session, and scheduled tasks run a prompt automatically on a cron schedule (e.g. every morning) even when you\'re away.'
+        ],
+        breakdown:[
+          { cmd:'/loop — poll on a timer:', desc:'"<code>/loop 5m check if the Vercel deploy finished and tell me when it\'s live</code>" — re-runs every 5 minutes until done. Great for watching builds or deploys.' },
+          { cmd:'/schedule — recurring agent:', desc:'"Every weekday at 8am, check my repo for failing tests and summarize them." Runs on its own schedule in the cloud.' }
+        ],
+        tip:{ label:'Don\'t reach for these too early', body:'Loops and schedules are for genuinely repetitive or time-delayed work. For a one-off task, just ask once — automation adds overhead that a single prompt doesn\'t need.' }
+      },
+      { type:'info', heading:'Connect outside tools with MCP & skills',
+        body:[
+          'Claude Code isn\'t limited to your files. <strong>MCP</strong> (Model Context Protocol) servers plug in outside tools — a browser, your calendar, Slack, a database — so Claude can act on them directly. And <strong>skills</strong> (the slash commands from the last playbook) are pre-built workflows you can extend with your own.'
+        ],
+        steps:[
+          { title:'MCP = Claude\'s hands in other apps', desc:'Connect a server and Claude can read your calendar, drive a browser, query a database, post to Slack — whatever the server exposes.' },
+          { title:'Skills = reusable workflows', desc:'Built-ins like /init, /code-review, /deploy-to-ios. You can also write your own for workflows you repeat.' },
+          { title:'Plugins = bundles of both', desc:'Skills + MCP connectors packaged together, so a whole workflow installs in one step.' }
+        ],
+        keyPoint:{ body:'Prompting well is the foundation. MCP and skills are the multipliers — once your asks are clear, these let Claude act far beyond the code in your folder.' }
+      },
+      { type:'quiz', heading:'Prompting check',
+        questions:[
+          { q:'Which prompt is most likely to get the right result on the first try?',
+            options:['"Make it better"','"Add a dark mode toggle in the top-right header that saves the choice to localStorage and defaults to the system preference"','"Fix the app"','"Add some features"'],
+            correct:1,
+            fb:'The specific prompt answers every question Claude would otherwise guess: what (a toggle), where (top-right header), behavior (saves to localStorage), and default (system preference). No guesses means no wrong turns.'
+          },
+          { q:'Claude says a feature is "done." What\'s the right next move?',
+            options:['Deploy immediately','Ask it to actually run the app and verify the behavior works','Start the next feature','Trust it — Claude doesn\'t make mistakes'],
+            correct:1,
+            fb:'"Done" means the code is written, not that the feature works. Ask Claude to run the app and confirm the behavior — click the button, check the console — before you believe it. Verification is a separate step from writing code.'
+          },
+          { q:'You want to watch a deploy and be told the moment it goes live. Best tool?',
+            options:['Refresh the page yourself every minute','<code>/loop</code> — re-run a check on a timer until it\'s done','Write a new app','Email Vercel support'],
+            correct:1,
+            fb:'/loop re-runs a prompt on an interval, so "every 5 minutes, check if the deploy is live" runs itself until it succeeds — exactly the polling-on-a-timer job it\'s built for.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-design', icon:'🎨', title:'Make It Look Good', badge:'Design Eye', badgeClass:'badge-blue', iconBg:'bg-blue',
+  tagline:'You don\'t need to be a designer to ship something that looks professional. The handful of rules and the exact tools I use to make every app look intentional.',
+  lessons:[
+    { title:'Design without being a designer', pages:[
+      { type:'info', heading:'Why your first draft looks "off"',
+        body:[
+          'Beginners assume good design means artistic talent. It doesn\'t — it\'s mostly a few mechanical rules applied consistently. The apps that look "off" almost always break the same handful: cramped spacing, too many colors, and no clear hierarchy.',
+          'You don\'t even have to apply these yourself. Once you know the vocabulary, you can <em>direct</em> Claude — "increase the spacing," "establish a clearer hierarchy," "drop to one accent color" — and judge whether the result is right.'
+        ],
+        steps:[
+          { title:'Space is your friend', desc:'The #1 amateur mistake is too little whitespace. Generous padding and margins make a layout feel calm and expensive. When in doubt, add space.' },
+          { title:'Hierarchy guides the eye', desc:'One clear focal point per screen. Big bold headline, medium subheads, quiet body text. If everything shouts, nothing is heard.' },
+          { title:'Restraint beats decoration', desc:'One accent color, one or two fonts, consistent corner radius. The navy + gold scheme across my apps is exactly this: a dark base and a single warm accent.' }
+        ],
+        keyPoint:{ body:'Good design is mostly subtraction. Consistent spacing + one accent color + clear hierarchy gets you 90% of the way to "this looks professional." Talent is the last 10%.' }
+      },
+      { type:'info', heading:'A reusable color system',
+        body:[
+          'Pros don\'t pick colors per-element — they define a small palette once and reuse it everywhere. That consistency is what reads as "designed." My apps store the palette as CSS variables (or Tailwind theme tokens) and never hardcode a hex value twice.'
+        ],
+        breakdown:[
+          { cmd:'Base + surface:', desc:'A dark navy background, a slightly lighter "surface" for cards. Two shades of the same family, not two different colors.' },
+          { cmd:'One accent:', desc:'Gold, used only for the things you want clicked — primary buttons, active states, key numbers. Scarcity is what makes an accent pop.' },
+          { cmd:'Text shades:', desc:'Bright white for headings, a muted grey for body and captions. Same hue, different brightness.' }
+        ],
+        tip:{ label:'The prompt', body:'"Define a color system as CSS variables: a dark navy base, a lighter surface for cards, one gold accent for primary actions, and two text shades (bright + muted). Then refactor the app to use only those variables — no one-off hex codes."' }
+      },
+      { type:'info', heading:'Steal a starting point',
+        body:[
+          'You don\'t have to invent a look from scratch. Describe a <em>vibe</em> and a reference, and Claude gives you a coherent starting point you can then refine.'
+        ],
+        breakdown:[
+          { cmd:'Set the vibe:', desc:'"Make this feel like a premium fintech app — dark, calm, lots of whitespace, one warm accent, rounded cards, subtle shadows."' },
+          { cmd:'Borrow a reference:', desc:'"Style this like Linear / Stripe / Notion — clean, lots of breathing room, restrained color." Naming a well-known product gives Claude a clear target.' },
+          { cmd:'Then iterate:', desc:'"The cards are too busy — more padding, remove the borders, let whitespace separate them instead."' }
+        ],
+        keyPoint:{ body:'Naming a reference product ("like Stripe") is the single most efficient design prompt — it carries a whole coherent style in two words.' }
+      }
+    ]},
+    { title:'Tailwind + shadcn, the way I use them', pages:[
+      { type:'info', heading:'Tailwind = styling in the markup',
+        body:[
+          'Every React app I build styles with <strong>Tailwind</strong> — utility classes you write directly on elements (<code>px-4 py-2 rounded-lg font-medium</code>) instead of separate CSS files. It feels verbose at first, then becomes the fastest way to style anything because you never leave the component.',
+          'In Tailwind v4 (what the Amex Maximizer uses) there\'s no <code>tailwind.config.js</code> — your theme tokens live in an <code>@theme {}</code> block inside your CSS. That\'s where your color system from the last lesson plugs in.'
+        ],
+        steps:[
+          { title:'Utility classes', desc:'Spacing (p-, m-), color (bg-, text-), layout (flex, grid), rounding (rounded-), and so on. Compose them right on the element.' },
+          { title:'@theme tokens (v4)', desc:'Define --color-navy, --color-gold, fonts, etc. in @theme inside index.css. Then bg-navy and text-gold "just work" everywhere.' },
+          { title:'Responsive prefixes', desc:'md:flex, lg:px-8 — apply a class only at a breakpoint. This is how one set of markup adapts to phone and desktop (next lesson).' }
+        ]
+      },
+      { type:'code', heading:'shadcn/ui + the cn() helper', lang:'src/lib/utils.ts',
+        code:`<span class="cm">// Every shadcn app ships this one helper — merges class lists cleanly.</span>
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+
+<span class="cm">// Used to combine fixed + conditional classes without conflicts:</span>
+&lt;button className={cn("rounded-lg px-4 py-2 font-medium",
+  isActive &amp;&amp; "bg-gold text-navy")}&gt;
+  Save
+&lt;/button&gt;`,
+        explain:'<strong>shadcn/ui</strong> isn\'t a component library you install and import — it <em>copies</em> styled, accessible components (Button, Card, Dialog, Badge) straight into your <code>src/components/ui/</code> so you own and can edit them. The <code>cn()</code> helper above is the glue: it lets you layer conditional classes (active states, variants) on top of base styles without Tailwind conflicts. Initialize it with <code>npx shadcn init</code>, then add pieces with <code>npx shadcn add button card</code>.'
+      },
+      { type:'info', heading:'When to reach for what',
+        body:[
+          'Not every project needs the full toolkit. Match the tool to the tier.'
+        ],
+        breakdown:[
+          { cmd:'Single HTML file:', desc:'Plain CSS in a <code>&lt;style&gt;</code> block with CSS variables. No build step, no Tailwind. (This learning app is exactly that.)' },
+          { cmd:'React/Vite or Next app:', desc:'Tailwind for everything, plus shadcn/ui for anything interactive (dialogs, dropdowns, forms) where accessibility is fiddly to get right by hand.' },
+          { cmd:'The prompt:', desc:'"Set up Tailwind v4 with my color tokens in @theme, initialize shadcn/ui, and rebuild the buttons and cards using shadcn components."' }
+        ],
+        tip:{ label:'Don\'t over-tool a small thing', body:'A one-page site doesn\'t need shadcn or even Tailwind. Reaching for the heavy toolkit on a Tier-1 project is how a 20-minute build becomes a 2-hour setup. Match the tool to the size.' }
+      }
+    ]},
+    { title:'Responsive & dark mode', pages:[
+      { type:'info', heading:'Mobile-first is a mindset',
+        body:[
+          'Most people will open your link on a phone. If it only looks good on your laptop, it looks broken to half your visitors. "Mobile-first" means you design for the small screen first, then add breakpoints to <em>expand</em> for bigger screens — not the other way around.',
+          'In Tailwind this is the unprefixed-class-is-mobile rule: <code>px-4</code> applies everywhere, and <code>md:px-8</code> overrides it only on medium screens and up.'
+        ],
+        steps:[
+          { title:'Test narrow first', desc:'Resize your browser to ~380px wide. If it works there, widening it is easy. The reverse rarely is.' },
+          { title:'Stack, then spread', desc:'Columns that sit side-by-side on desktop should stack vertically on mobile. <code>flex-col md:flex-row</code> is the whole trick.' },
+          { title:'Tap targets', desc:'Buttons and links need to be big enough for a thumb — generous padding isn\'t just aesthetic on mobile, it\'s usability.' }
+        ],
+        keyPoint:{ body:'Always check your app at phone width before you call it done. "Looks great on my screen" is the most common way a shipped app looks broken to everyone else.' }
+      },
+      { type:'info', heading:'Dark mode and verifying the look',
+        body:[
+          'Dark mode is mostly free if you used a color system — you swap the base and text tokens and everything follows. And you don\'t have to eyeball any of this manually: Claude can drive the real app and check it for you.'
+        ],
+        breakdown:[
+          { cmd:'Add dark mode:', desc:'"Add a dark/light toggle. Drive it with a CSS class on the root and my existing color tokens, default to the system preference, and remember the choice in localStorage."' },
+          { cmd:'Verify responsiveness:', desc:'"Run the app, resize it to phone width, and screenshot it. Tell me anything that overflows, overlaps, or looks cramped." Claude uses the preview tools to actually look.' },
+          { cmd:'Polish pass:', desc:'"Do a design polish pass: check spacing consistency, alignment, and that the accent color is used sparingly. Fix what\'s off."' }
+        ],
+        tip:{ label:'Make Claude look, not guess', body:'Ask Claude to screenshot the running app at different widths rather than describing what it "should" look like. Seeing the real render catches the overflow bug that reasoning misses.' }
+      },
+      { type:'quiz', heading:'Design check',
+        questions:[
+          { q:'Your app looks cramped and amateur. What\'s the single highest-impact fix?',
+            options:['Add more colors','Add more whitespace — padding and margins','Use a fancier font','Add animations'],
+            correct:1,
+            fb:'Too little whitespace is the #1 tell of an amateur layout. Generous, consistent spacing makes everything feel calm and intentional. It beats new colors, fonts, or animation every time.'
+          },
+          { q:'What does shadcn/ui actually do when you "add" a component?',
+            options:['Installs an npm package you import','Copies the component\'s source into your project so you own and can edit it','Loads it from a CDN','Generates it with AI each time'],
+            correct:1,
+            fb:'shadcn copies styled, accessible component source straight into your src/components/ui/ — you own the code and can edit it freely. That\'s why it pairs with the cn() helper instead of being a black-box library.'
+          },
+          { q:'In Tailwind, what does an unprefixed class like <code>px-4</code> (vs <code>md:px-4</code>) target?',
+            options:['Only desktop','Only print','All screen sizes — it\'s the mobile-first base','Only dark mode'],
+            correct:2,
+            fb:'Unprefixed classes apply at every width — they\'re your mobile-first base. Prefixes like md: and lg: layer overrides on top for larger screens. That\'s the whole responsive model.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-workflow', icon:'🧰', title:'Work Like a Pro with Claude Code', badge:'Pro Habits', badgeClass:'badge-gold', iconBg:'bg-gold',
+  tagline:'The habits that separate a smooth session from a frustrating one — managing context, using git as a safety net, and knowing when to push vs. start fresh.',
+  lessons:[
+    { title:'Manage context & memory', pages:[
+      { type:'info', heading:'Claude forgets — design around it',
+        body:[
+          'Claude Code holds a limited window of conversation in its head. In a long session that window fills up, and old details get summarized or dropped. This isn\'t a flaw to fight — it\'s a constraint to design around, the same way you\'d manage any limited resource.',
+          'Two facts follow from it: (1) put durable knowledge in files, not in chat, and (2) start a fresh session when you switch tasks, so the context isn\'t cluttered with irrelevant history.'
+        ],
+        steps:[
+          { title:'CLAUDE.md = permanent memory', desc:'Anything Claude should know every session (stack, ports, conventions, deploy steps) goes in CLAUDE.md — it\'s reloaded every time. This is the memory that survives. (You set it up with /init.)' },
+          { title:'The chat = working memory', desc:'Everything in the current conversation is temporary. Great for the task at hand, gone or fuzzy by next session.' },
+          { title:'/clear between tasks', desc:'Finished a feature and moving to an unrelated one? Clear the conversation so stale context doesn\'t leak into the new task.' }
+        ],
+        keyPoint:{ body:'If you find yourself re-explaining the same thing every session, that\'s a sign it belongs in CLAUDE.md, not in the chat. Durable facts go in files; only the current task lives in the conversation.' }
+      },
+      { type:'info', heading:'Keep sessions focused',
+        body:[
+          'A focused session — one task, relevant context only — gets sharper results than a sprawling one where Claude is juggling six half-finished threads. You control the focus.'
+        ],
+        breakdown:[
+          { cmd:'One task per session:', desc:'Finish or checkpoint a task, then /clear before the next unrelated one. A clean slate is faster than a cluttered one.' },
+          { cmd:'Re-anchor when it drifts:', desc:'If a long session starts forgetting, restate the goal: "To recap: we\'re building X, we\'ve done Y, next is Z." A one-line refresh re-focuses it.' },
+          { cmd:'Point at the source of truth:', desc:'"Re-read CLAUDE.md and lib/db/schema.ts before you start" beats hoping it remembers from an hour ago.' }
+        ],
+        tip:{ label:'Long task? Checkpoint and clear', body:'For a big multi-step job, finish a chunk, have Claude commit it (next lesson), then /clear and start the next chunk fresh with a pointer to what\'s done. Fresh context + a git checkpoint beats one marathon session.' }
+      }
+    ]},
+    { title:'The git safety net', pages:[
+      { type:'info', heading:'Git is your undo button',
+        body:[
+          'The single biggest fear for a non-coder is "what if Claude breaks something that was working?" Git removes that fear entirely. Every commit is a save point you can return to, so you can let Claude make bold changes knowing you can always roll back.',
+          'You don\'t need to master git — you need three moves: commit when something works, check what changed, and revert when it doesn\'t. Claude runs all three for you.'
+        ],
+        steps:[
+          { title:'Commit = save point', desc:'A commit snapshots every file at this moment with a label. "Commit this — it works" creates a point you can always return to.' },
+          { title:'Diff = what changed', desc:'Before trusting a change, "show me what you changed" (the diff) lets you see exactly what moved — nothing is hidden.' },
+          { title:'Revert = undo', desc:'"Undo the last change" or "go back to the last commit" rewinds to your last save point. The broken version simply disappears.' }
+        ],
+        keyPoint:{ body:'Commit early and often — every time something works, before you try something risky. A frequent committer is fearless, because the worst case is "go back to 10 minutes ago."' }
+      },
+      { type:'info', heading:'Branches = a sandbox to experiment',
+        body:[
+          'When you want to try something big or uncertain, a <strong>branch</strong> is a parallel copy where you can experiment freely. If it works, you keep it; if it doesn\'t, you throw the whole branch away and your main version was never touched.'
+        ],
+        breakdown:[
+          { cmd:'Start an experiment:', desc:'"Create a branch called try-new-layout and rebuild the homepage there, so main stays safe."' },
+          { cmd:'Keep it:', desc:'"The new layout is better — merge try-new-layout into main."' },
+          { cmd:'Toss it:', desc:'"Scrap the experiment, switch back to main, and delete the branch." Your working version is untouched.' }
+        ],
+        tip:{ label:'Let Claude handle the git commands', body:'You never need to memorize git syntax. Describe the intent — "save this," "undo that," "try this on a branch" — and Claude runs the right commands. The concepts matter; the syntax doesn\'t.' }
+      }
+    ]},
+    { title:'Read the room', pages:[
+      { type:'info', heading:'When to push vs. start over',
+        body:[
+          'Sometimes Claude gets stuck in a loop — fixing one thing breaks another, and three attempts later you\'re further from working than when you started. Recognizing that moment and resetting is a pro skill.',
+          'The tell: if the same bug survives two or three focused fix attempts, the approach is probably wrong, not the details. Don\'t keep patching — step back.'
+        ],
+        steps:[
+          { title:'Two strikes, then reset', desc:'If a fix doesn\'t hold after a couple of tries, stop iterating. Say "this approach isn\'t working — what\'s a different way to solve it?"' },
+          { title:'Roll back to safety', desc:'Use your last good commit. "Revert to the last working commit and let\'s try a cleaner approach" beats building on a broken foundation.' },
+          { title:'Shrink the problem', desc:'"Let\'s get just the form submitting first, ignore the rest." A smaller target is easier for both of you to hit.' }
+        ],
+        keyPoint:{ body:'Patching a broken approach compounds the mess. When the same problem survives a few fixes, the fastest path forward is almost always backward — revert and rethink.' }
+      },
+      { type:'info', heading:'Trust, but verify',
+        body:[
+          'The throughline of working well with Claude: it\'s a brilliant, fast collaborator that occasionally states "done" before checking. Your job is to keep it honest — cheaply, with a habit, not suspicion.'
+        ],
+        breakdown:[
+          { cmd:'Make it prove it:', desc:'"Run the app and show me it working" or use <code>/verify</code>. "Done" means code written, not feature working.' },
+          { cmd:'Review the diff:', desc:'On anything important, "show me what changed" before committing. Catching a wrong turn now is free; catching it after five more changes is expensive.' },
+          { cmd:'Small, reviewable steps:', desc:'Ask for one change at a time. A 20-line diff you understand beats a 300-line diff you hope is right.' }
+        ],
+        tip:{ label:'The whole loop in one line', body:'Describe clearly → let Claude build → verify it works → commit the save point → repeat. That loop, run tightly, is what "working like a pro" actually is.' }
+      },
+      { type:'quiz', heading:'Workflow check',
+        questions:[
+          { q:'You keep re-explaining your project\'s stack and deploy steps every session. The fix?',
+            options:['Type faster','Put it in CLAUDE.md so it\'s reloaded automatically every session','Use a longer prompt each time','Accept it — Claude can\'t remember'],
+            correct:1,
+            fb:'CLAUDE.md is durable memory — it\'s reloaded every session. Anything you find yourself repeating belongs there, not in the chat (which is temporary working memory that resets).'
+          },
+          { q:'Claude is about to make a big, risky change to working code. What should you do first?',
+            options:['Nothing — just hope it works','Commit the current working version so you have a save point to revert to','Delete the old code','Start a brand-new project'],
+            correct:1,
+            fb:'Commit first. A commit is a save point — with one in place you can let Claude make bold changes fearlessly, because the worst case is reverting to the version that worked moments ago.'
+          },
+          { q:'The same bug has survived three focused fix attempts. Best move?',
+            options:['Try the same fix a fourth time','Stop patching — revert to the last working commit and try a different approach','Give up on the feature','Delete the file and rewrite from memory'],
+            correct:1,
+            fb:'When a bug outlives several fixes, the approach is usually wrong, not the details. Revert to your last good commit and rethink — patching a broken foundation only compounds the mess.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-security', icon:'🔒', title:'Don\'t Get Hacked', badge:'Stay Safe', badgeClass:'badge-gray', iconBg:'bg-gray',
+  tagline:'Shipping in public means anyone can read your code and probe your app. The few non-negotiable habits that keep your keys, your data, and your users safe.',
+  lessons:[
+    { title:'Secrets & .gitignore', pages:[
+      { type:'info', heading:'What a "secret" actually is',
+        body:[
+          'A secret is any value that proves it\'s <em>you</em> and lets someone spend your money or read your data: API keys, database tokens, auth signing secrets, passwords. Your <code>ANTHROPIC_API_KEY</code> is the classic one — anyone who has it can run up your Claude bill.',
+          'The cardinal rule: <strong>a secret never goes into your code or your git history.</strong> Not "temporarily," not "I\'ll remove it later." Once it\'s in a commit, assume it\'s compromised — git remembers everything.'
+        ],
+        keyPoint:{ body:'If a value would let a stranger impersonate you or charge your account, it\'s a secret. Secrets live in environment variables, never in committed code.' }
+      },
+      { type:'info', heading:'.gitignore: the bouncer',
+        body:[
+          'Secrets live in a <code>.env.local</code> file on your machine. The <code>.gitignore</code> file is what stops that file from ever being committed — it\'s a list of names git is told to completely ignore. Every project needs <code>.env*</code> in its .gitignore before the first commit.'
+        ],
+        breakdown:[
+          { cmd:'What belongs in .gitignore:', desc:'<code>.env</code>, <code>.env.local</code>, <code>node_modules</code>, build output (<code>dist</code>, <code>.next</code>). Claude adds these by default — confirm they\'re there.' },
+          { cmd:'The safe pattern:', desc:'Keep a committed <code>.env.example</code> with the variable <em>names</em> but blank values, so you remember what\'s needed without leaking the real ones.' },
+          { cmd:'Check before first push:', desc:'"Before we push, confirm .env.local is gitignored and no secrets are in any tracked file." A 10-second check that prevents the classic mistake.' }
+        ],
+        tip:{ label:'If you ever leak a key', body:'Removing it from the code isn\'t enough — it\'s in git history and possibly already scraped. <strong>Rotate it:</strong> go to the provider (Anthropic console, etc.), delete the exposed key, and generate a new one. The leaked one becomes worthless.' }
+      }
+    ]},
+    { title:'The three env-var homes', pages:[
+      { type:'info', heading:'Same secret, three separate places',
+        body:[
+          'This trips up everyone. Your environment variables don\'t live in one place — they live in up to three, and each is independent. Set a key in one and the others have no idea it exists.',
+          'You already met this pain in the iOS unit (EAS builds couldn\'t see <code>.env.local</code>). Here\'s the full map so it never surprises you again.'
+        ],
+        steps:[
+          { title:'Local: .env.local', desc:'On your Mac, for development. Read by your dev server. Never committed (it\'s gitignored).' },
+          { title:'Vercel: project env vars', desc:'In the Vercel dashboard → Settings → Environment Variables. This is what your deployed website reads. Setting it locally does NOT set it here.' },
+          { title:'EAS: cloud build env', desc:'For Expo/iOS builds, pushed with eas env:create. Cloud builds read ONLY from here — not from .env.local, not from Vercel.' }
+        ],
+        keyPoint:{ body:'A variable that works locally but breaks in production almost always means: you set it in .env.local but forgot to add it in Vercel (or EAS). Three homes, set it in each that needs it.' }
+      },
+      { type:'info', heading:'Public vs. private: the prefix trap',
+        body:[
+          'Here\'s the dangerous subtlety: some env vars get bundled into the code the browser downloads, where anyone can read them. Which ones? It\'s decided by a naming <strong>prefix</strong>, and getting it wrong leaks a secret to the entire internet.'
+        ],
+        breakdown:[
+          { cmd:'Public (browser can read):', desc:'<code>VITE_*</code> (Vite), <code>NEXT_PUBLIC_*</code> (Next.js), <code>EXPO_PUBLIC_*</code> (Expo). Only safe, non-secret values get these prefixes — a public API base URL, a feature flag.' },
+          { cmd:'Private (server only):', desc:'No special prefix. <code>ANTHROPIC_API_KEY</code>, database tokens, <code>AUTH_SECRET</code> — these must stay unprefixed so they\'re only ever read on the server, never shipped to the browser.' },
+          { cmd:'The rule:', desc:'Never put a real secret behind a public prefix. If your AI calls happen in the browser, that\'s the bug — route them through a server function so the key stays server-side.' }
+        ],
+        tip:{ label:'Why AI apps use a server route', body:'Your Dream Career / tutor / Foundry apps call Claude from a server function (Vercel edge/serverless), not the browser — precisely so <code>ANTHROPIC_API_KEY</code> never reaches the client. The browser asks your server; your server holds the key and calls Claude.' }
+      }
+    ]},
+    { title:'Shipping safely in public', pages:[
+      { type:'info', heading:'A public repo means the world reads it',
+        body:[
+          'When you push to a public GitHub repo, every line is readable by anyone, forever — including in old commits. That\'s great for sharing and learning, but it means the "don\'t commit secrets" rule isn\'t optional: bots actively scan public GitHub for leaked keys within minutes of a push.',
+          'It also means your client-side code is fully visible. Anyone can open DevTools and read your JavaScript. That\'s fine — as long as nothing secret is in it (see the prefix trap). Security comes from keeping secrets server-side, not from hiding code.'
+        ],
+        steps:[
+          { title:'Assume the frontend is public', desc:'Every line of browser code can be read. Validate and protect on the server, never trust the client.' },
+          { title:'Guard your endpoints', desc:'A server route that talks to your database or Claude should check who\'s calling (auth) and not blindly trust input. An open endpoint is an open door.' },
+          { title:'Private repo when in doubt', desc:'If a project genuinely can\'t be public yet, make the GitHub repo private. It still deploys to Vercel exactly the same way.' }
+        ],
+        keyPoint:{ body:'Security isn\'t hiding your code — it\'s keeping secrets out of it and validating on the server. Assume everything the browser receives is visible to an attacker, because it is.' }
+      },
+      { type:'info', heading:'Make security a habit, not a panic',
+        body:[
+          'You don\'t need to become a security expert. You need a short, repeatable checklist that runs before anything goes live — and a skill that catches what you miss.'
+        ],
+        breakdown:[
+          { cmd:'Before every deploy:', desc:'Run <code>/security-review</code>. It scans pending changes for leaked secrets, missing input checks, and auth holes in about 30 seconds.' },
+          { cmd:'The pre-flight prompt:', desc:'"Before we deploy: confirm no secrets are committed, .env is gitignored, and any server endpoint validates its input and checks auth."' },
+          { cmd:'After adding any backend:', desc:'The moment you add an API key, a database, or a form, you\'ve added attack surface. That\'s the trigger to run a security pass — not a milestone you reach later.' }
+        ],
+        tip:{ label:'The one habit that matters most', body:'Run <code>/security-review</code> the first time a project gains a secret or a backend, and again before each deploy that touches auth, input, or external calls. It\'s cheap insurance against the mistakes that are expensive to learn about from strangers.' }
+      },
+      { type:'quiz', heading:'Security check',
+        questions:[
+          { q:'You accidentally committed your ANTHROPIC_API_KEY and pushed it to public GitHub. Deleting the line and re-committing is enough. True?',
+            options:['True — it\'s gone now','False — it\'s in git history and likely already scraped; you must rotate (revoke + regenerate) the key','True, if you do it fast','False — but only if the repo is popular'],
+            correct:1,
+            fb:'Git remembers everything, and bots scan public repos within minutes. Deleting the line doesn\'t remove it from history. The only safe fix is to rotate the key: revoke the exposed one in the provider console and generate a new one.'
+          },
+          { q:'Which environment variable name is safe to expose to the browser?',
+            options:['ANTHROPIC_API_KEY','AUTH_SECRET','NEXT_PUBLIC_API_URL','DATABASE_TOKEN'],
+            correct:2,
+            fb:'The NEXT_PUBLIC_ prefix deliberately ships a value to the browser — so it\'s only for non-secret values like a public API base URL. Real secrets (API keys, auth secrets, DB tokens) must stay unprefixed and server-side.'
+          },
+          { q:'You set a variable in .env.local, it works locally, but the deployed app breaks. Most likely cause?',
+            options:['Vercel is down','You forgot to also add the variable in Vercel\'s env settings — the three homes are separate','The variable name is too long','You need to restart your Mac'],
+            correct:1,
+            fb:'Local, Vercel, and EAS env vars are three independent homes. Setting one in .env.local does nothing for the deployed app — you must add it in Vercel too. "Works local, breaks in prod" is the classic symptom of a missing Vercel variable.'
+          }
+        ]
+      }
+    ]}
+  ]
 }
 ];
 
@@ -1476,14 +2196,21 @@ function getProgress() {
 
 function saveProgress(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
 
-function getLessonsDone(skillId) {
+// `lessonCount` is the unit's actual number of lessons. Stored progress is
+// padded/truncated to that length so units can have any number of lessons
+// (the engine no longer assumes 3). Falls back to the stored length, then 3.
+function getLessonsDone(skillId, lessonCount) {
   const p = getProgress();
-  return p[skillId]?.done || [false, false, false];
+  const stored = p[skillId]?.done || [];
+  const n = lessonCount || stored.length || 3;
+  return Array.from({ length: n }, (_, i) => !!stored[i]);
 }
 
-function markLessonDone(skillId, lessonIdx) {
+function markLessonDone(skillId, lessonIdx, lessonCount) {
   const p = getProgress();
-  if (!p[skillId]) p[skillId] = { done: [false, false, false] };
+  const n = lessonCount || (p[skillId]?.done?.length) || (lessonIdx + 1);
+  if (!p[skillId]) p[skillId] = { done: [] };
+  while (p[skillId].done.length < n) p[skillId].done.push(false);
   p[skillId].done[lessonIdx] = true;
   saveProgress(p);
 }
@@ -1522,8 +2249,9 @@ function switchTab(tab) {
 function renderRoadmap() {
   const arr = getTabArray(currentTab);
   const done = totalLessonsDone(arr);
+  const totalLessons = arr.reduce((sum, sk) => sum + sk.lessons.length, 0);
   document.getElementById('nav-progress').textContent =
-    `${done} of ${arr.length * 3} lessons done`;
+    `${done} of ${totalLessons} lessons done`;
 
   const hero = document.getElementById('road-hero');
   hero.innerHTML = currentTab === 'playbook'
@@ -1532,9 +2260,9 @@ function renderRoadmap() {
 
   const container = document.getElementById('skill-nodes');
   container.innerHTML = arr.map((sk, i) => {
-    const ld = getLessonsDone(sk.id);
+    const ld = getLessonsDone(sk.id, sk.lessons.length);
     const doneCount = ld.filter(Boolean).length;
-    const allDone = doneCount === 3;
+    const allDone = doneCount === sk.lessons.length;
     const anyDone = doneCount > 0;
     const stateClass = allDone ? 's-complete' : anyDone ? 's-active' : '';
     const dots = ld.map((d, di) =>
@@ -1564,7 +2292,7 @@ function renderRoadmap() {
 function openSkill(skillIdx) {
   curArray = getTabArray(currentTab);
   curSkill = skillIdx;
-  const ld = getLessonsDone(curArray[skillIdx].id);
+  const ld = getLessonsDone(curArray[skillIdx].id, curArray[skillIdx].lessons.length);
   curLesson = ld.indexOf(false);
   if (curLesson === -1) curLesson = 0;
   curPage = 0;
@@ -1597,7 +2325,7 @@ function renderLessonView() {
   const lesson = skill.lessons[curLesson];
   const page = lesson.pages[curPage];
   const totalPages = lesson.pages.length;
-  const ld = getLessonsDone(skill.id);
+  const ld = getLessonsDone(skill.id, skill.lessons.length);
 
   // Header
   document.getElementById('ls-skill-lbl').textContent = skill.title;
@@ -1801,7 +2529,7 @@ function nextPage() {
   const isLastLesson = curLesson === skill.lessons.length - 1;
 
   if (isLastPage) {
-    markLessonDone(skill.id, curLesson);
+    markLessonDone(skill.id, curLesson, skill.lessons.length);
     if (isLastLesson) {
       backToRoadmap();
     } else {

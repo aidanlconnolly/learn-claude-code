@@ -19,8 +19,8 @@ Everything lives in a single `index.html` (~1700 lines). The file is divided int
 | Section | What it does |
 |---|---|
 | `SKILLS` array | 8 skills × 3 lessons × 3–4 pages of course content. |
-| `PLAYBOOK` array | 1 skill × 3 lessons × 3–4 pages — the "Claude Code Playbook Setup" tab content. Same shape as `SKILLS`. |
-| State & localStorage | `getProgress()` / `saveProgress()` / `markLessonDone()` — persists `{ skillId: { done: [bool, bool, bool] } }` under key `ccl_journey_v1`. Skill IDs in `PLAYBOOK` are prefixed `pb-` to avoid collisions with `SKILLS` IDs. |
+| `PLAYBOOK` array | 8 skills × 3 lessons × 2–5 pages — the "Claude Code Playbook Setup" tab content (`pb-setup`, `pb-skills`, `pb-data`, `pb-ios`, `pb-prompt`, `pb-design`, `pb-workflow`, `pb-security`). Same shape as `SKILLS`. Covers machine setup, built-in slash commands, adding a real backend (Turso + Drizzle + auth), shipping to the iOS App Store (Expo + EAS), prompting technique, UI/design (Tailwind + shadcn), pro workflow habits (context/git), and security/secrets hygiene. |
+| State & localStorage | `getProgress()` / `saveProgress()` / `markLessonDone()` — persists `{ skillId: { done: [bool, ...] } }` under key `ccl_journey_v1`. **Lesson counts are dynamic** (not hardcoded to 3): `getLessonsDone(skillId, lessonCount)` and `markLessonDone(skillId, lessonIdx, lessonCount)` take the unit's `lessons.length` and pad/grow the stored `done` array to fit; `renderRoadmap()` derives the nav total via `arr.reduce((s,sk)=>s+sk.lessons.length,0)` and `allDone` via `doneCount === sk.lessons.length`. So a unit may have any number of lessons. Skill IDs in `PLAYBOOK` are prefixed `pb-` to avoid collisions with `SKILLS` IDs. |
 | Tab state | `currentTab` (`'journey'` \| `'playbook'`), `curArray` (snapshot of whichever array is active when a lesson opens), `switchTab(tab)`. `renderRoadmap()` reads `getTabArray(currentTab)` to decide which array to render. |
 | Roadmap render | `renderRoadmap()` — populates `#road-hero` and `#skill-nodes` based on the active tab. Called on init and after `backToRoadmap()`. |
 | Lesson view | `openSkill(idx)` snapshots `curArray`, then `showLessonView()` → `renderLessonView()` → `renderPage()`. All subsequent lesson-nav functions (`nextPage`, `prevPage`, `getCurrentPage`, `renderLessonView`) reference `curArray[curSkill]`, not `SKILLS[curSkill]` directly. |
@@ -36,7 +36,7 @@ Everything lives in a single `index.html` (~1700 lines). The file is divided int
 - `{type:'code', heading, lang, code, explain?}`
 - `{type:'quiz', heading, questions:[{q, options:[], correct:int, fb}]}`
 
-**New skill in the Learning Journey** — add to `SKILLS`. Each skill needs: `id` (unique string), `icon`, `title`, `badge`, `badgeClass` (`badge-gold` / `badge-blue` / `badge-gray`), `iconBg` (`bg-gold` / `bg-blue` / `bg-gray`), `tagline`, and exactly 3 `lessons`. The roadmap renders an alternating left/right layout automatically; no CSS changes needed for additional skills.
+**New skill in the Learning Journey** — add to `SKILLS`. Each skill needs: `id` (unique string), `icon`, `title`, `badge`, `badgeClass` (`badge-gold` / `badge-blue` / `badge-gray`), `iconBg` (`bg-gold` / `bg-blue` / `bg-gray`), `tagline`, and a `lessons` array (any length — the engine reads `lessons.length`; 3 is the convention but not required). The roadmap renders an alternating left/right layout automatically; no CSS changes needed for additional skills.
 
 **New tab** — add another data array (follow the `PLAYBOOK` shape), add a button to `.tab-bar` in the HTML with `data-tab` and `onclick="switchTab('...')"`, update `getTabArray()` to return the new array, and update `renderRoadmap()` hero text for the new tab.
 
