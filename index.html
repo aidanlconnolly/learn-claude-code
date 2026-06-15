@@ -2182,6 +2182,496 @@ export function cn(...inputs) {
       }
     ]}
   ]
+},
+{
+  id:'pb-nextjs', icon:'📂', title:'Next.js — The Framework Under Your Apps', badge:'Full Stack', badgeClass:'badge-blue', iconBg:'bg-blue',
+  tagline:'Vite-React is one mental model; Next.js App Router is a different one — and it\'s what runs most of my real apps. Server vs. client, Server Actions, and file-based routing.',
+  lessons:[
+    { title:'Server vs. client — the big idea', pages:[
+      { type:'info', heading:'Two kinds of React, one app',
+        body:[
+          'The React you learned in the Journey runs entirely in the browser. <strong>Next.js</strong> adds a second place your code can run: the <em>server</em>. That one idea is the whole reason my serious apps (the tutors, Foundry, PeOps-Prep, behavioral-prep) use Next.js instead of plain Vite — it lets a component fetch from the database or call the Claude API directly, with the secret key never leaving the server.',
+          'By default in the App Router, <strong>every component is a Server Component</strong> — it renders on the server and sends finished HTML to the browser. You opt a component into the browser (for clicks, typing, state) by putting <code>"use client"</code> at the top of its file.'
+        ],
+        steps:[
+          { title:'Server Component (default)', desc:'Runs on the server. Can read the database, call APIs with secret keys, and do heavy work — none of it ships to the browser. Cannot use onClick, useState, or useEffect.' },
+          { title:'Client Component ("use client")', desc:'Runs in the browser. Needed for anything interactive: buttons, forms, hooks like useState/useEffect. This is the React you already know.' },
+          { title:'The rule of thumb', desc:'Default to Server Components. Add "use client" only to the specific pieces that need interactivity — usually small leaf components, not whole pages.' }
+        ],
+        keyPoint:{ body:'Server Components are why a Next.js app can talk to your database and to Claude without exposing secrets. The browser receives HTML, not your API key. This is the single biggest difference from a Vite SPA.' }
+      },
+      { type:'info', heading:'Why this matters for your apps',
+        body:[
+          'In a Vite app (Amex, PGA, finance tracker) everything is client-side, so any data has to live in localStorage or come from a separate API the browser calls. In a Next.js app, the page itself runs on the server first — so it can load <em>your</em> data for <em>this</em> user and render it before the browser ever sees it.'
+        ],
+        breakdown:[
+          { cmd:'Server Component fetching data:', desc:'A page can be an <code>async</code> function that awaits a database query directly — <code>const stories = await db.select()...</code> — then returns JSX using the result. No loading spinner, no separate API call.' },
+          { cmd:'When to reach for Next.js:', desc:'The moment you want logins, a shared database, or server-side AI calls. For a no-backend toy or single-file game, plain Vite or vanilla HTML is simpler — don\'t over-tool.' }
+        ],
+        tip:{ label:'The prompt', body:'"Build this as a Next.js App Router app (not Vite). Use Server Components for data loading and only add \'use client\' to the interactive pieces. Stack: Next.js + Drizzle + Turso."' }
+      }
+    ]},
+    { title:'Server Actions & data', pages:[
+      { type:'info', heading:'Your backend, written as a function',
+        body:[
+          'In a Vite app, saving data means writing a separate API endpoint and calling it with <code>fetch</code>. Next.js collapses that into <strong>Server Actions</strong>: a function marked <code>"use server"</code> that runs on the server but is called directly from your component, like any other function. No endpoint to wire up, no fetch.',
+          'This is exactly where the auth from the database unit lives — every Server Action starts by checking who\'s logged in (<code>requireAuth()</code>) and scopes its database query to that user.'
+        ],
+        keyPoint:{ body:'A Server Action is a backend endpoint that looks like a normal function call. It runs only on the server, so it\'s the safe place to touch the database, call Claude, and check auth.' }
+      },
+      { type:'code', heading:'A Server Action with auth', lang:'app/actions.ts',
+        code:`<span class="cm">// "use server" makes every export here run ONLY on the server.</span>
+"use server";
+import { db } from "@/lib/db";
+import { items } from "@/lib/db/schema";
+import { requireAuth } from "@/lib/auth";
+
+export async function addItem(title) {
+  const userId = await requireAuth();        <span class="cm">// who is logged in?</span>
+  await db.insert(items).values({ userId, title });
+}`,
+        explain:'A client component calls <code>addItem("...")</code> as if it were local, but the body runs on the server. That\'s the whole pattern behind the auth scaffold from the database unit: <code>requireAuth()</code> at the top of every action, every query scoped to <code>userId</code>. The browser never sees the database or the logic — only the result.'
+      },
+      { type:'info', heading:'Forms call actions directly',
+        body:[
+          'Because a Server Action is just a function, you can hand it straight to a form — no <code>onSubmit</code>, no <code>fetch</code>, no JSON wrangling. Next.js wires the form submission to the server function for you.'
+        ],
+        breakdown:[
+          { cmd:'Wire a form to an action:', desc:'<code>&lt;form action={addItem}&gt;</code> — the form posts directly to the Server Action when submitted. For richer interactivity, a client component can call the action inside an event handler instead.' },
+          { cmd:'Refresh the screen after a write:', desc:'After the action changes data, call <code>revalidatePath("/")</code> so the Server Component re-runs and the page shows the new data. No manual state update needed.' }
+        ],
+        tip:{ label:'The mental shift', body:'In Vite you think "component → fetch → API endpoint → database." In Next.js it collapses to "component → Server Action → database." Fewer moving parts, and the secret stays server-side.' }
+      }
+    ]},
+    { title:'File-based & dynamic routing', pages:[
+      { type:'info', heading:'Folders are your routes',
+        body:[
+          'Vite apps use React Router — you declare routes in code. Next.js App Router uses the <strong>file system</strong>: a folder under <code>app/</code> becomes a URL, and a <code>page.tsx</code> inside it is what renders there. No router config to maintain.'
+        ],
+        steps:[
+          { title:'app/page.tsx', desc:'The homepage — the "/" route.' },
+          { title:'app/account/page.tsx', desc:'Becomes "/account". The folder name is the URL segment.' },
+          { title:'app/layout.tsx', desc:'A shared wrapper (nav bar, fonts, providers) that surrounds every page beneath it. You write the chrome once.' }
+        ],
+        keyPoint:{ body:'Want a new page? Make a folder with a page.tsx in it. The URL is the folder path. That\'s the entire routing system — there\'s no route table to keep in sync.' }
+      },
+      { type:'info', heading:'Dynamic routes — one page, many URLs',
+        body:[
+          'When a URL has a variable part — a story id, a language code — you name the folder with square brackets. <code>app/[lang]/page.tsx</code> matches <code>/en</code>, <code>/fr</code>, <code>/it</code>, and the page receives <code>lang</code> as a parameter.',
+          'My language-tutor app is built exactly this way: a single <code>[lang]</code> route serves both Italian and French, reading the language from the URL. One set of code, many URLs.'
+        ],
+        breakdown:[
+          { cmd:'Dynamic segment:', desc:'<code>app/[lang]/page.tsx</code> → the page gets <code>params.lang</code> ("en", "fr", ...). One file handles every language.' },
+          { cmd:'The prompt:', desc:'"Add a dynamic [lang] route so the same lesson page works for both English and French — read the language from the URL and load the right content."' }
+        ],
+        tip:{ label:'Server Components + params', body:'A dynamic page is usually a Server Component that reads <code>params</code>, queries the database for that id/language, and renders — all on the server, before the browser sees anything.' }
+      },
+      { type:'quiz', heading:'Next.js check',
+        questions:[
+          { q:'In the Next.js App Router, what runs in the browser by default?',
+            options:['Every component','Nothing — components are Server Components by default; you add "use client" for browser code','Only the layout','Only forms'],
+            correct:1,
+            fb:'App Router components are Server Components by default — they render on the server. You opt a component into the browser with "use client" when it needs interactivity (clicks, useState, useEffect). This is the opposite default from a Vite SPA.'
+          },
+          { q:'What is a Server Action?',
+            options:['A type of CSS animation','A server-side function (marked "use server") you call directly from a component — your backend without a separate endpoint','A Vercel deploy hook','A React hook'],
+            correct:1,
+            fb:'A Server Action runs only on the server but is called like a normal function from your component. It\'s the safe place to touch the database, call Claude, and check auth — no fetch, no separate API route to wire up.'
+          },
+          { q:'You want a page that works for /en, /fr, and /it from one file. What do you create?',
+            options:['Three separate page.tsx files','A folder named [lang] with a page.tsx that reads params.lang','A switch statement in App.jsx','A React Router config'],
+            correct:1,
+            fb:'A square-bracket folder name like [lang] is a dynamic route — one page.tsx handles every value, receiving it as params.lang. It\'s exactly how the language-tutor serves both Italian and French from a single route.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-api', icon:'🤖', title:'Build with the Claude API', badge:'AI Inside', badgeClass:'badge-gold', iconBg:'bg-gold',
+  tagline:'The thread running through most of my apps — career pickers, tutors, Foundry, Personal Doctor. How to make Claude part of an app: the call, streaming, and structured output.',
+  lessons:[
+    { title:'Your first AI feature', pages:[
+      { type:'info', heading:'An AI feature is just an API call',
+        body:[
+          'Adding "AI" to an app sounds mystical; mechanically it\'s one HTTP request. Your server sends Claude some text (a <em>prompt</em>), Claude sends text back, you use it. The Anthropic SDK wraps this in one function — <code>messages.create()</code> — and that single call powers the career picker, the tutors, Foundry\'s mentor, and the Personal Doctor analysis.',
+          'The non-negotiable rule: this call happens on your <strong>server</strong> (a Server Action, a Vercel function, or Flask), never in the browser — because it needs your secret <code>ANTHROPIC_API_KEY</code>, and anything in the browser is public (you learned this in the security unit).'
+        ],
+        keyPoint:{ body:'An AI feature = a server-side call to messages.create() with your prompt. The model reads your text and returns text. Everything else — streaming, structured output — is a refinement of that one idea.' }
+      },
+      { type:'code', heading:'The minimal Claude call', lang:'a server action / API route',
+        code:`<span class="cm">// npm install @anthropic-ai/sdk — runs on the SERVER only</span>
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic();   <span class="cm">// reads ANTHROPIC_API_KEY from env</span>
+
+const res = await client.messages.create({
+  model: "claude-opus-4-8",       <span class="cm">// the model to use</span>
+  max_tokens: 1024,               <span class="cm">// cap on the reply length</span>
+  messages: [
+    { role: "user", content: "Suggest 3 careers for someone who loves maps." },
+  ],
+});
+
+console.log(res.content[0].text); <span class="cm">// Claude's answer</span>`,
+        explain:'<code>messages</code> is the conversation so far — the API is stateless, so to have a back-and-forth you send the whole history each time. <code>max_tokens</code> caps the response length. The reply comes back in <code>res.content</code> as blocks; the text is <code>res.content[0].text</code>. That\'s a complete AI feature.'
+      },
+      { type:'info', heading:'Which model? Cost vs. capability',
+        body:[
+          'Anthropic offers a few model tiers. They trade cost and speed against raw capability. For most app features, default to the most capable Opus model and only drop down if cost or latency becomes a real problem.'
+        ],
+        breakdown:[
+          { cmd:'Opus (e.g. claude-opus-4-8):', desc:'Most capable — best for nuanced reasoning, grading, complex generation. Highest cost (~$5 in / $25 out per million tokens). The sensible default.' },
+          { cmd:'Sonnet (e.g. claude-sonnet-4-6):', desc:'The balance of speed and smarts (~$3 / $15). Great for high-volume features where Opus is overkill.' },
+          { cmd:'Haiku (e.g. claude-haiku-4-5):', desc:'Fastest and cheapest (~$1 / $5). Use for simple, high-frequency jobs — classification, quick suggestions, a one-word tag.' }
+        ],
+        tip:{ label:'A token ≈ ¾ of a word', body:'You pay per token, in and out. A short prompt + reply is a fraction of a cent. The names change as new models ship — when in doubt, ask Claude Code for the current model IDs rather than guessing, and default to the latest Opus.' }
+      }
+    ]},
+    { title:'Streaming responses', pages:[
+      { type:'info', heading:'Why the tutors feel alive',
+        body:[
+          'A long Claude reply can take several seconds. If you wait for the whole thing, the user stares at a frozen screen. <strong>Streaming</strong> sends the answer token-by-token as it\'s generated, so words appear like someone typing — exactly what the tutors and the career picker do.',
+          'There are two halves: the server streams from Claude, and the browser reads that stream and paints each chunk as it arrives.'
+        ],
+        keyPoint:{ body:'Streaming doesn\'t make Claude faster — it makes the wait <em>visible</em>. The first word shows up almost immediately instead of after the full response, which is the difference between "is this broken?" and "it\'s thinking."' }
+      },
+      { type:'code', heading:'Server side: stream from Claude', lang:'server',
+        code:`<span class="cm">// .stream() yields the reply in pieces as Claude generates it</span>
+const stream = client.messages.stream({
+  model: "claude-opus-4-8",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: prompt }],
+});
+
+for await (const event of stream) {
+  if (event.type === "content_block_delta" &&
+      event.delta.type === "text_delta") {
+    send(event.delta.text);   <span class="cm">// push each chunk to the browser</span>
+  }
+}`,
+        explain:'The Dream Career and Startup Idea apps do exactly this, then forward each chunk to the browser over SSE (Server-Sent Events) — each chunk arrives as a <code>data:</code> line, with a <code>[DONE]</code> sentinel at the end. The Flask versions and the Vercel edge versions stream identically; just keep the prompt in sync between them.'
+      },
+      { type:'info', heading:'Browser side: read the stream',
+        body:[
+          'On the browser, you read the stream and append each chunk to what\'s on screen. Because the request is a POST (you\'re sending the prompt), you read it with <code>fetch</code> + a <code>ReadableStream</code> rather than the simpler EventSource.'
+        ],
+        breakdown:[
+          { cmd:'The pattern:', desc:'<code>fetch</code> the endpoint → get <code>response.body.getReader()</code> → loop reading chunks → append each chunk\'s text to your state → React re-renders, and the answer grows word by word.' },
+          { cmd:'The prompt:', desc:'"Make the Claude response stream in token-by-token instead of appearing all at once. Stream SSE from the server and read it on the client with fetch + ReadableStream."' }
+        ],
+        tip:{ label:'Default to streaming for anything long', body:'Any feature with a multi-sentence reply should stream — it also sidesteps server timeouts on long generations. Short, one-word replies (a classification) don\'t need it.' }
+      }
+    ]},
+    { title:'Prompt engineering & structured output', pages:[
+      { type:'info', heading:'The system prompt sets the role',
+        body:[
+          'Inside an app you don\'t want chatty, open-ended Claude — you want a focused specialist. The <strong>system prompt</strong> sets that role and the rules: who Claude is, what it should and shouldn\'t do, the format to follow. It\'s separate from the user\'s message and applies to the whole conversation.',
+          'The career picker\'s system prompt says "you are a career advisor, suggest exactly 3 options, be concise." The tutors\' says "you are a patient Italian teacher, correct gently, reply in simple sentences." Same API, different role.'
+        ],
+        breakdown:[
+          { cmd:'Set the role:', desc:'Pass <code>system: "You are a..."</code> alongside <code>messages</code>. Spell out the persona, the constraints, and the output shape.' },
+          { cmd:'Keep prompts in sync:', desc:'Apps with both a local (Flask) and prod (edge) path — like Dream Career — must keep the prompt identical in both. A drift between them is a classic "works locally, weird in prod" bug.' }
+        ],
+        keyPoint:{ body:'The user message is the question; the system prompt is the job description. Most of the quality of an AI feature lives in a well-written system prompt — it\'s where you do the real "prompt engineering."' }
+      },
+      { type:'info', heading:'Structured output & AI-as-grader',
+        body:[
+          'Often you don\'t want prose back — you want <em>data</em> your code can use: a category, a score, a list of fields. You can ask Claude to return JSON matching a schema, and the API will guarantee the shape. This is how PeOps-Prep grades case answers and behavioral-prep matches stories to questions — Claude acts as a <strong>judge</strong>, returning a structured verdict, not an essay.'
+        ],
+        breakdown:[
+          { cmd:'Force a JSON shape:', desc:'Pass <code>output_config: {format: {type: "json_schema", schema: {...}}}</code> and Claude\'s reply is guaranteed to match — your code can <code>JSON.parse</code> it with confidence.' },
+          { cmd:'AI as a grader (LLM-as-judge):', desc:'Give Claude a rubric and a user\'s answer; ask for <code>{score, feedback, strengths, gaps}</code>. That\'s exactly PeOps\' AI-graded cases — the model evaluates against criteria and returns structured results.' }
+        ],
+        tip:{ label:'The prompt', body:'"When I send a case answer, call Claude with my rubric and return structured JSON: a 1–5 score, two strengths, and two things to improve. Use a json_schema so the shape is guaranteed."' }
+      },
+      { type:'quiz', heading:'Claude API check',
+        questions:[
+          { q:'Where must the call to the Claude API happen, and why?',
+            options:['In the browser, so it\'s fast','On the server, so the secret ANTHROPIC_API_KEY never reaches the browser','In localStorage','In the CSS'],
+            correct:1,
+            fb:'The call needs your secret API key, and anything in the browser is readable by anyone. So the call lives on the server (Server Action, Vercel function, or Flask) and the browser only ever sees the result — never the key.'
+          },
+          { q:'What does streaming a Claude response actually improve?',
+            options:['It makes the model think faster','It shows the answer appearing word-by-word so the wait feels responsive instead of frozen','It reduces the cost','It removes the need for an API key'],
+            correct:1,
+            fb:'Streaming doesn\'t change how fast Claude generates — it makes the generation visible. The first words appear almost immediately, so the user sees progress instead of a frozen screen. It\'s why the tutors feel alive.'
+          },
+          { q:'You want Claude to grade a case answer and return a score your code can use. Best approach?',
+            options:['Ask for a paragraph and hope to parse it','Use structured output (a json_schema) so the reply is guaranteed JSON with the fields you defined','Run it in the browser','Use a bigger max_tokens'],
+            correct:1,
+            fb:'Structured output constrains the reply to a JSON shape you define, so your code can rely on the fields. That\'s the LLM-as-judge pattern PeOps-Prep uses — a rubric in, a structured {score, feedback} verdict out.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-ts', icon:'🔷', title:'TypeScript — JavaScript with Guardrails', badge:'Type Safety', badgeClass:'badge-blue', iconBg:'bg-blue',
+  tagline:'Every Vite and Next app you own is TypeScript. You don\'t have to write much of it — but reading it, and understanding why it complains, makes you a far better director of Claude.',
+  lessons:[
+    { title:'Why types', pages:[
+      { type:'info', heading:'Catch the bug before you run it',
+        body:[
+          'JavaScript lets you do nonsense — add a number to a string, call a function that doesn\'t exist, read a field that isn\'t there — and only blows up when that line runs, often in front of a user. <strong>TypeScript</strong> is JavaScript plus type labels, so an editor (and the build) catches those mistakes <em>as you type</em>, with a red squiggle, before the code ever runs.',
+          'That\'s why all your real React apps use it. You rarely write much type code yourself — Claude does — but understanding it lets you read the squiggles and tell Claude exactly what\'s wrong.'
+        ],
+        keyPoint:{ body:'A type is a promise about what a value is — "this is a number," "this is a list of strings." TypeScript checks every promise is kept. A bug becomes a red underline at edit-time instead of a crash at 2am.' }
+      },
+      { type:'code', heading:'A type annotation, read aloud', lang:'typescript',
+        code:`<span class="cm">// ": number" and ": string" are the type labels.</span>
+function greet(name: string, age: number) {
+  return \`Hi \${name}, you are \${age}\`;
+}
+
+greet("Aidan", 38);   <span class="cm">// ✓ fine</span>
+greet("Aidan", "38"); <span class="cm">// ✗ red squiggle: "38" is a string, not a number</span>`,
+        explain:'You read <code>name: string</code> as "name is a string." When you call <code>greet</code> with the wrong kind of value, TypeScript objects immediately — no need to run anything. Multiply that across a whole app and you avoid a huge class of silly, hard-to-find bugs.'
+      }
+    ]},
+    { title:'The types you\'ll actually see', pages:[
+      { type:'info', heading:'A small vocabulary covers most code',
+        body:[
+          'You don\'t need the whole type system. A handful of shapes show up everywhere in your apps; recognizing them is 90% of reading TypeScript.'
+        ],
+        steps:[
+          { title:'The basics', desc:'<code>string</code>, <code>number</code>, <code>boolean</code>. And arrays: <code>string[]</code> is "a list of strings."' },
+          { title:'Objects via interface/type', desc:'<code>type Player = { name: string; score: number }</code> describes the shape of an object — which fields it has and their types.' },
+          { title:'Optional with ?', desc:'<code>email?: string</code> means the email field may or may not be there. The <code>?</code> is "optional."' },
+          { title:'Unions with |', desc:'<code>"easy" | "medium" | "hard"</code> means the value must be exactly one of those three strings. Great for fixed sets of options.' }
+        ]
+      },
+      { type:'code', heading:'Your typed data files', lang:'src/data/players.ts',
+        code:`<span class="cm">// The shape, then the data — your apps' source of truth.</span>
+type Player = {
+  name: string;
+  score: number;
+  rounds: number[];
+  status?: "cut" | "active";   <span class="cm">// optional; one of two values</span>
+};
+
+export const players: Player[] = [
+  { name: "Scheffler", score: -12, rounds: [68, 70], status: "active" },
+];`,
+        explain:'This is the exact pattern behind <code>players.ts</code>, <code>benefits.ts</code>, and <code>careers.ts</code> — a typed shape plus the real data. The type means if you add a player and forget <code>score</code>, or typo <code>"activ"</code>, you get a red squiggle instantly. The data file becomes self-checking.'
+      }
+    ]},
+    { title:'Strict mode & conventions', pages:[
+      { type:'info', heading:'Strict mode is the seatbelt',
+        body:[
+          'Your Vite projects run TypeScript in <strong>strict mode</strong> — the safety checks are turned all the way up. Two rules in particular will stop your build, and they\'re intentional: no unused variables, and no unused function parameters. They keep dead code from piling up.',
+          'When strict mode complains about an unused parameter you still need to keep (e.g. it\'s the second argument and you only use the third), the convention across your projects is to prefix its name with an underscore.'
+        ],
+        breakdown:[
+          { cmd:'The underscore convention:', desc:'Change <code>(event, index)</code> to <code>(_event, index)</code> when you don\'t use <code>event</code>. The <code>_</code> tells TypeScript "intentionally unused" and the error goes away — don\'t delete the parameter.' },
+          { cmd:'"Fix the type error" prompt:', desc:'"The build is failing with a TypeScript error: [paste the exact error]. Fix it properly — don\'t just cast to <code>any</code> to silence it."' }
+        ],
+        keyPoint:{ body:'A type error is the build doing its job, not nagging. The lazy fix (<code>as any</code>) silences the check and lets the real bug through. Ask Claude to fix the cause, not mute the symptom.' }
+      },
+      { type:'quiz', heading:'TypeScript check',
+        questions:[
+          { q:'What is the main thing TypeScript gives you over plain JavaScript?',
+            options:['Faster code at runtime','It catches type mistakes at edit/build time, before the code runs','Smaller file sizes','Built-in styling'],
+            correct:1,
+            fb:'TypeScript adds type labels that an editor and the build check as you write. Mistakes like passing a string where a number is expected become a red squiggle immediately, instead of a crash when that line eventually runs.'
+          },
+          { q:'In a type, what does <code>status?: "cut" | "active"</code> mean?',
+            options:['status must always be set','status is optional, and if present must be exactly "cut" or "active"','status is a number','status is a function'],
+            correct:1,
+            fb:'The <code>?</code> makes the field optional, and the <code>|</code> union restricts it to exactly one of the listed string values. Together: "status may be omitted, but if it\'s there it has to be \'cut\' or \'active\'."'
+          },
+          { q:'Strict mode flags an unused function parameter you need to keep. The convention?',
+            options:['Delete it','Prefix its name with an underscore (e.g. _event)','Cast it to any','Disable strict mode'],
+            correct:1,
+            fb:'Prefixing with <code>_</code> signals "intentionally unused" and clears the error without removing the parameter from the signature. It\'s the convention across all your strict-mode Vite projects — far better than turning the check off.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-arch', icon:'🧱', title:'Frontend Architecture Patterns', badge:'Structure', badgeClass:'badge-gray', iconBg:'bg-gray',
+  tagline:'The recurring shape of my React apps — one hook owns state, pure logic lives in lib/, data is a typed file. Direct Claude toward this and your apps stay clean as they grow.',
+  lessons:[
+    { title:'Where state lives — the custom hook', pages:[
+      { type:'info', heading:'One hook owns the data',
+        body:[
+          'In the Amex maximizer and the finance tracker, all the app\'s state lives in <strong>one custom hook</strong> — <code>useCredits</code>, for example. It loads from localStorage on mount, hands the components the data plus a set of updater functions, and saves back to localStorage on every change. Components never touch storage directly; they just call the hook\'s functions.',
+          'This keeps a clean line: components display things and call functions; the hook is the single source of truth for state. When something\'s wrong with the data, you know exactly one place to look.'
+        ],
+        steps:[
+          { title:'Load once', desc:'On mount, the hook reads saved state from localStorage (or starts fresh).' },
+          { title:'Expose updaters', desc:'It returns the data plus functions like <code>addCredit</code>, <code>removeCredit</code> — the only ways to change state.' },
+          { title:'Save on change', desc:'Every updater calls <code>saveState()</code>, so localStorage always mirrors the live state. Nothing is lost on refresh.' }
+        ],
+        keyPoint:{ body:'One hook = one home for state. Components stay "dumb" (display + call functions); the hook owns loading, updating, and saving. This is why those apps stay understandable even as features pile up.' }
+      },
+      { type:'info', heading:'Directing Claude toward it',
+        body:[
+          'Left unguided, Claude may scatter <code>useState</code> calls across many components and read/write localStorage in random places — which works until it doesn\'t. Name the pattern up front and you get a clean structure for free.'
+        ],
+        breakdown:[
+          { cmd:'The prompt:', desc:'"Put all state in a single custom hook (like useCredits) that loads from localStorage on mount, exposes updater functions, and saves on every change. Components should only call the hook — never touch localStorage directly."' },
+          { cmd:'The course-correction:', desc:'"State is scattered across components. Consolidate it into one hook that owns loading, updating, and persistence."' }
+        ],
+        tip:{ label:'Why one hook beats many useStates', body:'Scattered state means scattered bugs — five components each saving to localStorage will eventually disagree. One hook serializes all changes through a single path, so the saved data is always consistent.' }
+      }
+    ]},
+    { title:'Logic in lib/, not components', pages:[
+      { type:'info', heading:'Components stay thin',
+        body:[
+          'The second half of the pattern: the actual <em>logic</em> — date math, computing totals, deciding what\'s expired — lives in plain functions under <code>src/lib/</code>, not inside components. The hook imports those functions; components just render what the hook gives them.',
+          'A component\'s job is to show things. The moment it\'s doing arithmetic or business rules inline, that logic is hard to find, hard to reuse, and impossible to test on its own.'
+        ],
+        breakdown:[
+          { cmd:'Pure functions in lib/:', desc:'<code>src/lib/credits.ts</code> holds <code>calcMonthlyTotal(...)</code>, <code>isExpired(...)</code> — functions that take inputs and return outputs, with no React in them.' },
+          { cmd:'The hook wires it together:', desc:'<code>useCredits</code> imports those functions and exposes the results. Components call the hook, never the raw math.' }
+        ],
+        keyPoint:{ body:'"Pure logic in lib/, state in a hook, display in components." Three layers, each with one job. A bug is always in the layer that owns that concern — you stop hunting across the whole app.' }
+      },
+      { type:'info', heading:'Why this is testable and reusable',
+        body:[
+          'Because the logic in <code>lib/</code> is just functions — inputs in, outputs out, no UI — you (or Claude) can test it in isolation and reuse it anywhere. Logic trapped inside a component can\'t be reached without rendering the whole component.'
+        ],
+        breakdown:[
+          { cmd:'The prompt:', desc:'"Move the date math and total calculations out of the component into pure functions in src/lib/. The component should only call them and render the result."' }
+        ],
+        tip:{ label:'The smell to watch for', body:'If a component file is getting long and full of calculations, that\'s the signal to extract logic into lib/. Ask Claude: "this component is doing too much — pull the logic into src/lib/ and keep the component to rendering."' }
+      }
+    ]},
+    { title:'Typed data as source of truth', pages:[
+      { type:'info', heading:'The data is a file, not an API',
+        body:[
+          'For domain constants that rarely change — the Amex benefit amounts, the PGA player list, the career definitions — the source of truth is a <strong>typed TypeScript file</strong> (<code>benefits.ts</code>, <code>players.ts</code>, <code>careers.ts</code>), not a database or a fetched API. The data ships with the app, loads instantly, and the type keeps it honest.',
+          'It\'s the simplest possible "backend": no server, no network, no failure modes. When the numbers change, you edit the file and redeploy.'
+        ],
+        steps:[
+          { title:'Typed shape', desc:'Define the shape once (a <code>type</code>), so every entry is checked — no missing fields, no typos in option values.' },
+          { title:'The real data', desc:'Export the array/object of actual values. This is what the app reads.' },
+          { title:'Keep it in sync', desc:'When a benefit amount or player score changes, this file is the one place to update. The CLAUDE.md notes call these out as "keep in sync" files.' }
+        ],
+        keyPoint:{ body:'Not everything needs a database. For data that changes rarely and isn\'t per-user, a typed file is faster, simpler, and self-checking. Reach for Turso only when data must be shared, per-user, or change at runtime.' }
+      },
+      { type:'quiz', heading:'Architecture check',
+        questions:[
+          { q:'In the useCredits pattern, where does the app\'s state live?',
+            options:['Scattered across components as useState','In one custom hook that loads, updates, and saves it','In the CSS','In a database'],
+            correct:1,
+            fb:'One custom hook owns all the state — loading from localStorage, exposing updater functions, and saving on every change. Components stay dumb and just call the hook, so there\'s a single source of truth and a single place to debug.'
+          },
+          { q:'Where should date math and total calculations live?',
+            options:['Inline inside each component','In pure functions under src/lib/, imported by the hook','In localStorage','In the system prompt'],
+            correct:1,
+            fb:'Pure logic belongs in src/lib/ — functions with inputs and outputs and no React. Components only render; the hook wires the logic to state. That separation makes the logic testable, reusable, and easy to locate.'
+          },
+          { q:'When is a typed data file (like players.ts) the right choice over a database?',
+            options:['Never — always use a database','For data that changes rarely and isn\'t per-user — it ships with the app, loads instantly, and the type checks it','Only for images','Only for AI features'],
+            correct:1,
+            fb:'For domain constants that rarely change and aren\'t per-user, a typed file is the simplest "backend": no server, instant load, self-checking via the type. Save the database for data that\'s shared, per-user, or changes at runtime.'
+          }
+        ]
+      }
+    ]}
+  ]
+},
+{
+  id:'pb-game', icon:'🎮', title:'Build a Browser Game', badge:'Just for Fun', badgeClass:'badge-gold', iconBg:'bg-gold',
+  tagline:'A different kind of project — Golf Range and Tower Defense. The game loop, the one-object state pattern, and reading input. A weekend build that teaches Canvas.',
+  lessons:[
+    { title:'The game loop', pages:[
+      { type:'info', heading:'A game is a loop that redraws',
+        body:[
+          'A web game isn\'t magic — it\'s a loop that runs ~60 times a second: update the world a little, redraw everything, repeat. You draw onto a <code>&lt;canvas&gt;</code> element (a blank pixel grid you paint with JavaScript), and the browser\'s <code>requestAnimationFrame</code> schedules the next frame at the screen\'s refresh rate.',
+          'Golf Range and Tower Defense are both built exactly this way — no game engine, just a loop, a canvas, and some math.'
+        ],
+        steps:[
+          { title:'Update', desc:'Move things a bit: advance the ball, step enemies forward, check collisions.' },
+          { title:'Draw', desc:'Clear the canvas and repaint everything in its new position.' },
+          { title:'Repeat', desc:'<code>requestAnimationFrame(loop)</code> asks the browser to run the loop again on the next frame — smooth ~60fps animation.' }
+        ],
+        keyPoint:{ body:'Update → draw → request the next frame. That three-step loop, running 60 times a second, is the entire skeleton of every Canvas game you\'ll build.' }
+      },
+      { type:'info', heading:'Delta time makes speed consistent',
+        body:[
+          'Not every device runs at exactly 60fps. If you move the ball "5 pixels per frame," it goes faster on a 120Hz screen and slower on a slow one. The fix is <strong>delta time</strong> (<code>dt</code>) — how many seconds passed since the last frame — and you multiply movement by it.',
+          'This is also the trick behind speed multipliers: a 2× fast-forward just scales <code>dt</code>, so the same code runs at any speed.'
+        ],
+        breakdown:[
+          { cmd:'Move by dt, not per frame:', desc:'<code>ball.x += ball.speed * dt</code> — now the ball travels the same real-world distance per second regardless of frame rate.' },
+          { cmd:'Speed multiplier for free:', desc:'A "2× speed" button multiplies <code>dt</code> by 2. Every dt-based movement speeds up together — no other code changes.' }
+        ],
+        tip:{ label:'The prompt', body:'"Build a single-file HTML Canvas game with a requestAnimationFrame loop. Use delta-time (dt) for all movement so speed is consistent across frame rates, and so I can add a speed multiplier later."' }
+      }
+    ]},
+    { title:'State in one object', pages:[
+      { type:'info', heading:'The whole game is one state object',
+        body:[
+          'Both games keep <em>all</em> game state in a single <code>state</code> object — ball position, score, level, enemies, everything — created by a <code>createState()</code> factory function. The loop reads and mutates that one object; nothing else holds game data.',
+          'The payoff: restarting the game is just <code>state = createState()</code>. One line resets everything to the start, because everything lives in that one place.'
+        ],
+        breakdown:[
+          { cmd:'The factory:', desc:'<code>function createState() { return { ball: {...}, score: 0, level: 1, ... }; }</code> — returns a fresh, fully-reset world.' },
+          { cmd:'Reset = re-create:', desc:'<code>state = createState()</code> wipes the game back to the start. No hunting down a dozen variables to reset individually.' }
+        ],
+        keyPoint:{ body:'One state object created by one factory function. The loop mutates it; restarting re-creates it. This mirrors the localStorage-hook idea from the architecture unit: a single source of truth makes everything else simple.' }
+      },
+      { type:'info', heading:'Same pattern, different game',
+        body:[
+          'The structure is identical whether you\'re building mini-golf or tower defense — only the contents of <code>state</code> and the update rules differ. Learn it once on a simple game and the next one is the same skeleton with new math.'
+        ],
+        breakdown:[
+          { cmd:'Start tiny:', desc:'"Build a one-hole mini-golf game in a single HTML file with Canvas. State in one object via createState(); the loop updates and redraws."' },
+          { cmd:'Then go bigger:', desc:'"Now build a tower-defense game with the same structure — one state object, a dt-based game loop — but with enemies that walk a path and towers that shoot them."' }
+        ],
+        tip:{ label:'Single-file is fine here', body:'Games like these are perfect as one self-contained HTML file — inline CSS and JS, no build step, open it straight in a browser. Save the heavy tooling for the React apps.' }
+      }
+    ]},
+    { title:'Input & shipping it', pages:[
+      { type:'info', heading:'Reading the player',
+        body:[
+          'A game reacts to input — clicks, drags, key presses. You listen for browser events and update the <code>state</code> object; the loop picks up the change on the next frame. Golf Range\'s power shot is a click-and-drag: press to start aiming, drag to set power and direction, release to launch.'
+        ],
+        steps:[
+          { title:'Listen for events', desc:'<code>canvas.addEventListener("mousedown"/"mousemove"/"mouseup", ...)</code> to track a drag, or <code>keydown</code> for keyboard controls.' },
+          { title:'Update state, not the screen', desc:'An input handler just changes <code>state</code> (e.g. sets the shot\'s power). The loop\'s draw step shows it next frame. Don\'t draw directly from the handler.' },
+          { title:'Collisions are math', desc:'"Did the ball hit the wall / enemy?" is a distance or overlap check between two positions — simple geometry, run each frame in the update step.' }
+        ],
+        keyPoint:{ body:'Input handlers change state; the loop draws state. Keeping that one-way flow — input → state → draw — is what stops a game from turning into tangled spaghetti.' }
+      },
+      { type:'info', heading:'Ship it like anything else',
+        body:[
+          'A browser game is just an HTML file, so it deploys exactly like your other static projects — push to GitHub, deploy to Vercel, share the URL. Add a leaderboard later with Vercel KV if you want scores shared (like Stadium Run and the penalty shootout do).'
+        ],
+        breakdown:[
+          { cmd:'Ship it:', desc:'"Deploy this game to GitHub and Vercel and give me the live URL." Same loop as every other deploy.' },
+          { cmd:'Add shared scores (optional):', desc:'"Add a global high-score list using Vercel KV — save the player\'s score and show the top 10."' }
+        ],
+        tip:{ label:'Verify by playing', body:'After Claude builds it, have it run the game and confirm the controls work — "run it, take a shot, and check the ball physics look right." A game that compiles isn\'t the same as a game that\'s fun to play.' }
+      },
+      { type:'quiz', heading:'Game dev check',
+        questions:[
+          { q:'What are the three steps of a game loop, repeated ~60 times a second?',
+            options:['Fetch, parse, render','Update the world, draw it, request the next frame','Login, play, logout','Compile, test, deploy'],
+            correct:1,
+            fb:'Update → draw → request the next frame (via requestAnimationFrame). That tiny loop, running ~60 times a second, is the skeleton of every Canvas game — move things a little, repaint, and ask for the next frame.'
+          },
+          { q:'Why multiply movement by delta time (dt) instead of moving a fixed amount per frame?',
+            options:['It looks prettier','So speed stays consistent across different frame rates — and a speed multiplier becomes trivial','It uses less memory','It\'s required by Canvas'],
+            correct:1,
+            fb:'dt is the seconds elapsed since the last frame. Multiplying movement by it means the ball covers the same real-world distance per second on any device — and a 2× button just scales dt, speeding everything up at once.'
+          },
+          { q:'How do Golf Range and Tower Defense handle restarting the game?',
+            options:['Reload the whole page','Re-run createState() — one factory rebuilds the entire game world','Reset 20 variables by hand','Clear localStorage'],
+            correct:1,
+            fb:'All game state lives in one object built by createState(). Restarting is just <code>state = createState()</code> — one line rebuilds the whole world fresh, because there\'s a single source of truth for game state.'
+          }
+        ]
+      }
+    ]}
+  ]
 }
 ];
 
